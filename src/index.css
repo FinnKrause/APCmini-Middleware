@@ -1,0 +1,290 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  background-color: #252627;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  place-self: center;
+  color: white;
+  height: 100vh;
+}
+
+.active {
+  fill: red;
+}
+
+.lowerBrightness {
+  filter: brightness(0.4);
+}
+
+.pulsing {
+  animation: pulsing 1s infinite linear;
+}
+
+.blinking {
+  animation: blinking 1s infinite;
+
+}
+
+@keyframes pulsing {
+  0% {
+    filter: brightness(0.4)
+  }
+
+  50% {
+    filter: brightness(1)
+  }
+
+  100% {
+    filter: brightness(0.4)
+  }
+}
+
+@keyframes blinking {
+  0% {
+    filter: brightness(0.4)
+  }
+
+  49% {
+    filter: brightness(0.4)
+  }
+
+  50% {
+    filter: brightness(1)
+  }
+
+  100% {
+    filter: brightness(1)
+  }
+}
+
+.bottomPart {
+  display: flex;
+  justify-content: center;
+  place-items: center;
+  color: black;
+}
+
+#Settings {
+  margin-left: 20px;
+  /* background-color: #333; */
+  /* padding: 20px; */
+}
+
+.SettingsSection {
+  width: 400px;
+  margin: 15px 0px;
+  display: flex;
+  flex-direction: column;
+
+  height: fit-content;
+  background-color: #333;
+}
+
+.SettingsSection .header {
+  color: white;
+  text-align: center;
+  padding: 5px 0px;
+  font-size: 15px;
+  background-color: #777;
+  width: 100%;
+}
+
+.actionbuttons {
+  justify-content: space-evenly;
+  place-items: center;
+}
+
+.actionbuttons>button {
+  padding: 10px;
+  margin: 10px;
+  color: white;
+  background-color: #333;
+  font-weight: bold;
+}
+
+.actionbuttons>button:disabled {
+  padding: 10px;
+  margin: 10px;
+  background-color: #333;
+  color: gray;
+  cursor: not-allowed;
+}
+
+.midirows {
+  justify-content: space-between;
+}
+
+.dropdown {
+  margin: 10px;
+}
+
+.dropdown>h4 {
+  margin-bottom: 5px;
+  color: white;
+}
+
+.dropdownelement {
+  height: 1.5rem;
+}
+
+.midiButtons {
+  /* margin-top: 10px;
+  margin-bottom: 10px; */
+}
+
+.midiButtons button {
+  padding: 10px;
+  margin: 10px;
+  color: white;
+  background-color: #777;
+  font-weight: bold;
+}
+
+.ConfigRow {
+  justify-content: space-between;
+  margin: 0px 10px;
+  margin-top: 10px;
+}
+
+.ConfigRow>div {
+  flex: 1;
+  margin: 10px;
+}
+
+.ConfigRow>div:first-child {
+  /* flex: 2; */
+}
+
+.LookImportExportSettings button {
+  padding: 10px;
+  margin: 10px;
+  color: white;
+  background-color: #777;
+  font-weight: bold;
+  width: 80%;
+}
+
+.saveButtons {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.saveButtons>button {
+  margin: 2.5px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+#loadConfigButton:disabled,
+#saveButton:disabled,
+#saveConfigButton:disabled {
+  background-color: #333;
+  color: gray;
+  cursor: not-allowed;
+}
+
+#LoadedConfigName {
+  color: rgb(0, 255, 0);
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.editStateFlex {
+  justify-content: space-between;
+}
+
+.editStateFlex>div {
+  flex: 1;
+}
+
+.editStateFlexChild {
+  margin: 10px;
+}
+
+#UpdateEditButton {
+  padding: 10px;
+  margin: 10px;
+  color: white;
+  background-color: #777;
+  font-weight: bold;
+}
+
+.maincore {
+  margin-top: 10px;
+  justify-content: space-between;
+}
+
+.lightModeRow {
+  /* justify-self: flex-start; */
+  flex-direction: column;
+  /* justify-content: flex-start; */
+  align-items: flex-start;
+
+  margin: 10px 0px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.selected {
+  /* fill: lightblue; */
+  stroke: rgb(0, 191, 255);
+  filter: brightness(1);
+  stroke-width: 5px;
+}
+
+.flexWrapper {
+  display: flex;
+  place-items: center;
+}
+
+.horizontal {
+  flex-direction: column;
+}
+
+#selectedCells {
+  display: flex;
+  justify-content: flex-start;
+  place-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  gap: 10px 0px;
+  margin: 0px 10px;
+  margin-top: 10px;
+}
+
+.selectedCell {
+  height: 20px;
+  padding: 5px 10px;
+  margin: 0px 2.5px;
+  border-radius: 2px;
+  width: fit-content;
+  background-color: rgb(45, 45, 45);
+  color: white;
+  font-size: smaller;
+  text-align: center;
+}
+
+/* .selectedCell:first-child {
+  background-color: #999;
+}
+ */
+
+/* Specific Section Style */
+#NewEmptyProjectButton {}

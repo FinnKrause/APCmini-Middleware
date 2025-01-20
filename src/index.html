@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Theatertechnik MIDI Software</title>
+  <link rel="stylesheet" href="CSSReset.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+
+<script type="module" defer>
+  import { getMIDIInputs } from "./utils/midiwebapi.js"
+  import { findClosestColor, getColorFromHex } from "./utils/colorMagic.js"
+  import { Colors, LModes, defaultOffLook, defaultOnLook } from "./backend/constants.js";
+  import buildDesiredLooksMap from "./backend/desiredLooks.js"
+  import Interception from "./backend/Interception.js"
+  import APCAPI from "./backend/APCAPI.js";
+  /*
+  TODO: 
+    > Wenn Konfiguration reingeladen wird, dann nur überschreiben wenn vorher gespeichert oder nicht geupdated. 
+    Wenn schließen, dann fragen ob speichern, falls verändert
+      > Bei speichern alte Version updaten
+      > Beim reinladen alte Version updaten
+      > Bei updaten einzelner Zellen neue Version updaten
+      > Beim schließen vom Programm verhindern wenn nicht gespeichert
+    > Styling
+  */
+
+  const interception = new Interception(new Map())
+  let selectedItems = new Set()
+  let configPath = undefined;
+
+  function connectToMIDIDevices() {
+    const selected1 = document.getElementById('dropdown1');
+    const selected2 = document.getElementById('dropdown2');
+    const selected3 = document.getElementById('dropdown3');
+    const selected4 = document.getElementById('dropdown4');
+
+    interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => {
+      document.getElementById("midiButtons").removeChild(document.getElementById("connectButton"))
+      document.getElementById("midiButtons").removeChild(document.getElementById("reloadButton"))
+      selected1.disabled = true;
+      selected2.disabled = true;
+      selected3.disabled = true;
+      selected4.disabled = true;
+      interception.intersept(msg => {
+        // console.log(msg)
+
+      })
+    })
+
+  }
+  function fillMIDIMenu() {
+    const selected1 = document.getElementById('dropdown1');
+    const selected2 = document.getElementById('dropdown2');
+    const selected3 = document.getElementById('dropdown3');
+    const selected4 = document.getElementById('dropdown4');
+
+    const inputs = getMIDIInputs().then(result => {
+      selected1.innerHTML = ""
+      selected2.innerHTML = ""
+      selected3.innerHTML = ""
+      selected4.innerHTML = ""
+      result.forEach(i => {
+        const OptionElement = document.createElement("option")
+        const OptionElement2 = document.createElement("option")
+        const OptionElement3 = document.createElement("option")
+        const OptionElement4 = document.createElement("option")
+        OptionElement.value = i
+        OptionElement.textContent = i
+        OptionElement2.value = i
+        OptionElement2.textContent = i
+        OptionElement3.value = i
+        OptionElement3.textContent = i
+        OptionElement4.value = i
+        OptionElement4.textContent = i
+        selected1.appendChild(OptionElement)
+        selected2.appendChild(OptionElement2)
+        selected3.appendChild(OptionElement3)
+        selected4.appendChild(OptionElement4)
+      })
+      if (result.includes("JokerIn")) {
+        selected3.selectedIndex = result.indexOf("JokerIn")
+      }
+      if (result.includes("JokerOut")) {
+        selected4.selectedIndex = result.indexOf("JokerOut")
+      }
+      if (result.includes("toAPC")) {
+        selected1.selectedIndex = result.indexOf("toAPC")
+      }
+      if (result.includes("fromAPC")) {
+        selected2.selectedIndex = result.indexOf("fromAPC")
+      }
+    })
+
+  }
+  function MapToJSON(map) {
+    return Object.fromEntries(map)
+  }
+  function JSONToMAP(json) {
+    const map = new Map();
+    for (const key of Object.keys(json)) {
+      map.set(+key, json[key])
+    }
+    return map;
+  }
+
+  function handleFirstSelection(nnote) {
+    const look = interception.defaultLooksMap.get(nnote)
+    const offcolor = document.getElementById("offcolor")
+    const oncolor = document.getElementById("oncolor")
+    const offMode = document.getElementById("offMode")
+    const onMode = document.getElementById("onMode")
+
+    offcolor.value = look?.off?.color?.hex ?? defaultOffLook.color.hex;
+    offMode.selectedIndex = look?.off?.lmode ?? defaultOffLook.lmode
+
+    oncolor.value = look?.on?.color?.hex ?? defaultOnLook.color.hex;
+    onMode.selectedIndex = look?.on?.lmode ?? defaultOnLook.lmode
+
+  }
+
+  function lockEditSection() {
+    const on = document.getElementById("offcolor")
+    const off = document.getElementById("oncolor")
+    document.getElementById("UpdateEditButton").disabled = true
+    document.getElementById("offMode").disabled = true
+    document.getElementById("onMode").disabled = true
+
+    on.value = "#FFFFFF"
+    on.disabled = true
+    off.value = "#FFFFFF"
+    off.disabled = true
+
+
+  }
+
+  function unlockEditSection() {
+    document.getElementById("offcolor").disabled = false
+    document.getElementById("oncolor").disabled = false
+    document.getElementById("offMode").disabled = false
+    document.getElementById("onMode").disabled = false
+    document.getElementById("UpdateEditButton").disabled = false
+  }
+
+  function selectNote(nnote, element) {
+    selectedItems.add(nnote)
+    element.classList.add("selected")
+
+    const selectedCells = document.getElementById("selectedCells")
+    const newElement = document.createElement("div")
+    newElement.innerText = nnote
+    newElement.classList.add("selectedCell")
+    newElement.id = "selectedCell" + nnote
+    selectedCells.appendChild(newElement)
+    interception.highlightNote(nnote)
+
+    if (selectedItems.size > 0) {
+      unlockEditSection();
+    }
+  }
+
+  function unselectNote(nnoteID, element) {
+    selectedItems.delete(nnoteID)
+    element.classList.remove("selected")
+    interception.removeHighlight(nnoteID)
+
+    const selectedCells = document.getElementById("selectedCells").removeChild(document.getElementById("selectedCell" + nnoteID))
+    if (selectedItems.size === 0) lockEditSection();
+  }
+
+  function clearAllSelected() {
+    selectedItems.forEach(i => {
+      unselectNote(i, document.getElementById("Button" + i))
+    })
+  }
+
+  function updateConfigPath(newPath) {
+    configPath = newPath;
+    const domPathElement = document.getElementById("LoadedConfigName")
+    domPathElement.innerText = "Loaded Config: " + configPath
+  }
+
+  function updateLook() {
+    const offcolor = document.getElementById("offcolor")
+    const oncolor = document.getElementById("oncolor")
+    const offMode = document.getElementById("offMode")
+    const onMode = document.getElementById("onMode")
+
+    const actualOffColor = getColorFromHex(offcolor.value)
+    const actualOnColor = getColorFromHex(oncolor.value)
+
+    for (const cell of selectedItems) {
+      interception.updateLook(cell, {
+        on: { color: actualOnColor, lmode: onMode.selectedIndex },
+        off: { color: actualOffColor, lmode: offMode.selectedIndex }
+      });
+    }
+
+    clearAllSelected();
+
+    document.getElementById("NewEmptyProjectButton").disabled = true
+    document.getElementById("DiscardChangesButton").disabled = false
+    document.getElementById("loadConfigButton").disabled = true;
+
+    if (configPath) document.getElementById("saveButton").disabled = false;
+  }
+
+
+  document.addEventListener("DOMContentLoaded", () => {
+    fillMIDIMenu()
+
+    const connectButton = document.getElementById("connectButton")
+    const reloadButton = document.getElementById("reloadButton").onclick = fillMIDIMenu
+    connectButton.onclick = () => {
+      const selected1 = document.getElementById('dropdown1');
+      const selected2 = document.getElementById('dropdown2');
+      const selected3 = document.getElementById('dropdown3');
+      const selected4 = document.getElementById('dropdown4');
+      if (!(selected1.value != "Bitte wählen" && selected2.value != "Bitte wählen" && selected3.value != "Bitte wählen" && selected4.value != "Bitte wählen" && (new Set([selected1.value, selected2.value, selected3.value, selected4.value]).size >= 3))) {
+        // Wenn Duplikate oder nicht ausgewählt
+        alert("The current MIDI Selection is not valid. Check that the program 'loopMIDI' is running and that the MIDI Device is connected!")
+        return;
+      }
+
+      connectToMIDIDevices();
+    }
+
+    const saveButton = document.getElementById("saveButton")
+    saveButton.onclick = async () => {
+      if (configPath == undefined) {
+        alert("No config loaded. Cannot save")
+        return;
+      }
+
+      const result = await window.electronAPI.writeFile(configPath, JSON.stringify(MapToJSON(interception.defaultLooksMap)))
+      interception.updateOriginalLooksMap();
+
+      document.getElementById("loadConfigButton").disabled = false;
+      saveButton.disabled = true;
+
+
+    }
+
+    const saveConfigButton = document.getElementById("saveConfigButton")
+    saveConfigButton.onclick = async () => {
+      const { canceled, filePath } = await window.electronAPI.showSaveDialog({
+        buttonLabel: "Save config",
+        defaultPath: `BÄN-${Date.now()}.tk`
+      });
+
+      if (canceled) return;
+
+      const result = await window.electronAPI.writeFile(filePath, JSON.stringify(MapToJSON(interception.defaultLooksMap)))
+
+      if (!result.success) {
+        alert(result.error)
+        return;
+      }
+
+      interception.updateOriginalLooksMap();
+      updateConfigPath(filePath)
+      document.getElementById("NewEmptyProjectButton").disabled = false;
+      document.getElementById("DiscardChangesButton").disabled = true
+      document.getElementById("loadConfigButton").disabled = false;
+
+
+      alert("The config was saved at \"" + filePath + "\".")
+    }
+
+    const loadConfigButton = document.getElementById("loadConfigButton")
+    loadConfigButton.onclick = async () => {
+
+      if (!interception.canOverwrite()) {
+        alert("Please save your current config before importing a new one. Otherwise your work will be gone forever.")
+        return;
+      }
+
+      const options = {
+        title: "Open File",
+        properties: ["openFile"],
+        filters: [
+          { name: "MTG-Technik", extensions: ["tk"] },
+          // { name: "All Files", extensions: ["*"] },
+        ],
+      };
+
+      const result = await window.electronAPI.openFileDialog(options);
+
+      if (!result.canceled) {
+        const filePath = result.filePaths[0];
+
+        // Optionally read the file after selecting
+        const readResult = await window.electronAPI.readFile(filePath).then(res => {
+          if (res.success) {
+
+            const newMap = JSONToMAP(JSON.parse(res.data));
+            interception.updateLooksmap(newMap)
+
+            document.getElementById("NewEmptyProjectButton").disabled = false;
+            document.getElementById("DiscardChangesButton").disabled = true
+            document.getElementById("loadConfigButton").disabled = false;
+
+
+          } else {
+            alert("Error Reading File:", res.error);
+          }
+        })
+
+        updateConfigPath(filePath)
+
+      } else {
+        console.log("Open dialog was canceled.");
+      }
+    }
+
+    const pultSVG = document.getElementById("PultSVG")
+    pultSVG.onclick = (e) => {
+      if (e.target.id.startsWith("Button")) {
+        if (e.target.classList.contains("selected")) {
+          unselectNote(+e.target.id.replace("Button", ""), e.target)
+          return
+        }
+
+        selectNote(+e.target.id.replace("Button", ""), e.target)
+
+        if (selectedItems.size === 1) {
+          handleFirstSelection(+e.target.id.replace("Button", ""))
+        }
+      }
+      else {
+        clearAllSelected();
+      }
+    }
+
+    const offcolor = document.getElementById("offcolor")
+    const oncolor = document.getElementById("oncolor")
+    offcolor.onchange = i => {
+      i.target.value = findClosestColor(i.target.value).hex
+
+    }
+    oncolor.onchange = i => {
+      i.target.value = findClosestColor(i.target.value).hex
+
+    }
+
+    const UpdateEditButton = document.getElementById("UpdateEditButton")
+    UpdateEditButton.onclick = updateLook
+
+    const NewEmptyProjectButton = document.getElementById("NewEmptyProjectButton")
+    NewEmptyProjectButton.onclick = () => {
+      document.getElementById("LoadedConfigName").innerText = ""
+      configPath = undefined
+      document.getElementById("NewEmptyProjectButton").disabled = true
+      document.getElementById("saveButton").disabled = true;
+      document.getElementById("loadConfigButton").disabled = false;
+
+      interception.updateLooksmap(new Map())
+    }
+    const DiscardChangesButton = document.getElementById("DiscardChangesButton")
+    DiscardChangesButton.onclick = () => {
+
+      interception.discardAllChanges();
+      document.getElementById("NewEmptyProjectButton").disabled = false
+      document.getElementById("DiscardChangesButton").disabled = true
+      document.getElementById("saveButton").disabled = true;
+      document.getElementById("loadConfigButton").disabled = false;
+
+    }
+  })
+
+</script>
+
+<body>
+  <!-- <h1 class="Header">Theatertechnik MIDI-Software</h1> -->
+  <div class="bottomPart">
+    <div id="Pult">
+      <svg id="PultSVG" width="23.5cm" height="19.9cm" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2mm" y="2mm" width="23.1cm" height="19.5cm" rx="6mm" stroke="black" stroke-width="2mm" fill="#333">
+        </rect>
+        <rect id="Button56" x="6mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button48" x="6mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button40" x="6mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button32" x="6mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button24" x="6mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button16" x="6mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button8" x="6mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button0" x="6mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button57" x="31mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button49" x="31mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button41" x="31mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button33" x="31mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button25" x="31mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button17" x="31mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button9" x="31mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button1" x="31mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button58" x="56mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button50" x="56mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button42" x="56mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button34" x="56mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button26" x="56mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button18" x="56mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button10" x="56mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button2" x="56mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button59" x="81mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button51" x="81mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button43" x="81mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button35" x="81mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button27" x="81mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button19" x="81mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button11" x="81mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button3" x="81mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button60" x="106mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button52" x="106mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button44" x="106mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button36" x="106mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button28" x="106mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button20" x="106mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button12" x="106mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button4" x="106mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button61" x="131mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button53" x="131mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button45" x="131mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button37" x="131mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button29" x="131mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button21" x="131mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button13" x="131mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button5" x="131mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button62" x="156mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button54" x="156mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button46" x="156mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button38" x="156mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button30" x="156mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button22" x="156mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button14" x="156mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button6" x="156mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button63" x="181mm" y="19.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button55" x="181mm" y="33.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button47" x="181mm" y="47mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button39" x="181mm" y="60.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button31" x="181mm" y="74.5mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button23" x="181mm" y="88.25mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button15" x="181mm" y="102mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button7" x="181mm" y="115.75mm" width="21mm" height="1cm" rx=".5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button112" x="21.2cm" y="19.5mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button113" x="21.2cm" y="33.25mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button114" x="21.2cm" y="47mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button115" x="21.2cm" y="60.75mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button116" x="21.2cm" y="74.5mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button117" x="21.2cm" y="88.25mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button118" x="21.2cm" y="102mm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button119" x="21.2cm" y="115.75mm" width="1cm" height="1cm" rx="5mm" stroke="black"
+          stroke-width=".5mm" fill="#777"></rect>
+        <rect id="Button100" x="12.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button101" x="37.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button102" x="62.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button103" x="87.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button104" x="112.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button105" x="137.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button106" x="162.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <rect id="Button107" x="187.5mm" y="13cm" width="1cm" height="1cm" rx="5mm" stroke="black" stroke-width=".5mm"
+          fill="#777"></rect>
+        <g>
+          <rect x="6mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm" fill="#333">
+          </rect>
+          <rect x="15mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="9mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm" fill="#222">
+          </rect>
+          <rect x="9mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="9mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="31mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm" fill="#333">
+          </rect>
+          <rect x="40mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="34mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="34mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="34mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="56mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm" fill="#333">
+          </rect>
+          <rect x="65mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="59mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="59mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="59mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="81mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm" fill="#333">
+          </rect>
+          <rect x="90mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="84mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="84mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="84mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="106mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm"
+            fill="#333">
+          </rect>
+          <rect x="115mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="109mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="109mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="109mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="131mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm"
+            fill="#333">
+          </rect>
+          <rect x="140mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="134mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="134mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="134mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="156mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm"
+            fill="#333">
+          </rect>
+          <rect x="165mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="159mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="159mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="159mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="181mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm"
+            fill="#333">
+          </rect>
+          <rect x="190mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="184mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="184mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="184mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+        <g>
+          <rect x="206mm" y="14.5cm" width="2.1cm" height="4.8cm" rx="1mm" stroke="black" stroke-width="1mm"
+            fill="#333">
+          </rect>
+          <rect x="215mm" y="15.1cm" width="3mm" height="37mm" rx=".1mm" fill="none"></rect>
+          <rect x="209mm" y="14.8cm" width="1.5cm" height="1.5cm" rx="1mm" stroke="black" stroke-width=".5mm"
+            fill="#222">
+          </rect>
+          <rect x="209mm" y="15.3cm" width="1.5cm" height=".5cm" rx="1mm" fill="none"></rect>
+          <rect x="209mm" y="15.51cm" width="1.5cm" height="1mm" rx=".5mm" fill="#ddd"></rect>
+        </g>
+      </svg>
+    </div>
+    <div id="Settings">
+      <div class="SettingsSection">
+        <h2 class="header">Actions</h2>
+        <div class="flexWrapper actionbuttons">
+          <button id="NewEmptyProjectButton" disabled>Create new empty project</button>
+          <button id="DiscardChangesButton" disabled>Discard all changes</button>
+        </div>
+      </div>
+      <div class="SettingsSection" id="MidiSettings">
+        <h2 class="header">MIDI-Settings</h2>
+        <div class="flexWrapper midirows">
+          <div class="dropdown">
+            <h4>MIDI Gerät Input:</h4>
+            <select class="dropdownelement" id="dropdown1">
+              <option value="Bitte wählen"></option>
+            </select>
+          </div>
+          <div class="dropdown">
+            <h4>MIDI Gerät Output:</h4>
+            <select class="dropdownelement" id="dropdown2">
+              <option value="Bitte wählen"></option>
+            </select>
+          </div>
+        </div>
+        <div class="flexWrapper midirows">
+          <div class="dropdown">
+            <h4>Joker Input</h4>
+            <select class="dropdownelement" id="dropdown3">
+              <option value="Bitte wählen"></option>
+
+            </select>
+          </div>
+          <div class="dropdown">
+            <h4>Joker Output</h4>
+            <select class="dropdownelement" id="dropdown4">
+              <option value="Bitte wählen"></option>
+            </select>
+          </div>
+        </div>
+        <div id="midiButtons" class="flexWrapper midiButtons">
+          <button id="reloadButton">Reload</button>
+          <button id="connectButton">Connect</button>
+        </div>
+      </div>
+      <div class="SettingsSection LookImportExportSettings">
+        <h2 class="header">Configs</h2>
+
+        <div class="flexWrapper ConfigRow">
+          <div class="flexWrapper horizontal">
+            <h4>Save current config:</h4>
+            <div class="flexWrapper saveButtons">
+              <button id="saveButton" disabled>Save</button>
+              <button id="saveConfigButton">Save as</button>
+            </div>
+          </div>
+          <div class="flexWrapper horizontal">
+            <h4>Load config file:</h4>
+            <button id="loadConfigButton">Open file</button>
+          </div>
+        </div>
+
+        <h5 id="LoadedConfigName"></h5>
+      </div>
+      <div class="SettingsSection EditLook">
+        <h2 class="header">Edit config</h2>
+        <div id="selectedCells"></div>
+
+        <div class="flexWrapper editStateFlex">
+          <div class="looksWrapper editStateFlexChild">
+            <h4 class="onlook header">ON</h4>
+            <div class="flexWrapper horizontal maincore">
+              <div class="flexWrapper">
+                <!-- <h5>Farbe</h5> -->
+                <input id="oncolor" type="color" disabled>
+              </div>
+              <div class="flexWrapper horizontal lightModeRow">
+                <!-- <h5>Light Mode:</h5> -->
+                <select class="dropdownelement" id="onMode" disabled>
+                  <option value="0">Brightness10</option>
+                  <option value="1">Brightness25</option>
+                  <option value="2">Brightness50</option>
+                  <option value="3">Brightness65</option>
+                  <option value="4">Brightness75</option>
+                  <option value="5">Brightness90</option>
+                  <option value="6">Brightness100</option>
+                  <option value="7">Pulsing1t16</option>
+                  <option value="8">Pulsing1t8</option>
+                  <option value="9">Pulsing1t4</option>
+                  <option value="10">Pulsing1t2</option>
+                  <option value="11">Blinking1t24</option>
+                  <option value="12">Blinking1t16</option>
+                  <option value="13">Blinking1t8</option>
+                  <option value="14">Blinking1t4</option>
+                  <option value="15">Blinking1t2</option>
+                </select>
+
+              </div>
+            </div>
+
+          </div>
+
+          <div class="looksWrapper editStateFlex editStateFlexChild">
+            <h4 class="offlook header">OFF</h4>
+            <div class="flexWrapper horizontal maincore">
+
+              <div class="flexWrapper">
+                <!-- <h5>Farbe</h5> -->
+                <input id="offcolor" disabled type="color">
+              </div>
+
+              <div class="flexWrapper horizontal lightModeRow">
+                <!-- <h5>Light Mode:</h5> -->
+                <select class="dropdownelement" id="offMode" disabled>
+                  <option value="0">Brightness10</option>
+                  <option value="1">Brightness25</option>
+                  <option value="2">Brightness50</option>
+                  <option value="3">Brightness65</option>
+                  <option value="4">Brightness75</option>
+                  <option value="5">Brightness90</option>
+                  <option value="6">Brightness100</option>
+                  <option value="7">Pulsing1t16</option>
+                  <option value="8">Pulsing1t8</option>
+                  <option value="9">Pulsing1t4</option>
+                  <option value="10">Pulsing1t2</option>
+                  <option value="11">Blinking1t24</option>
+                  <option value="12">Blinking1t16</option>
+                  <option value="13">Blinking1t8</option>
+                  <option value="14">Blinking1t4</option>
+                  <option value="15">Blinking1t2</option>
+                </select>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+
+
+        <button id="UpdateEditButton" disabled>Update</button>
+
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
