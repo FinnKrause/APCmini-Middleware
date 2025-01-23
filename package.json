@@ -1,7 +1,7 @@
 {
   "name": "electronversion",
-  "productName": "electronversion",
-  "version": "1.0.0",
+  "productName": "APCmini-DMXJoker-Middleware",
+  "version": "1.0.1",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {

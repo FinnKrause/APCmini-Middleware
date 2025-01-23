@@ -159,6 +159,12 @@ class APCAPI {
     
   }
 
+  setWebUIFader(nnote, velocity) {
+    if (nnote == null || velocity == null) return;
+    const fader = document.querySelector("#Fader"+nnote)
+    fader.style.transform = `translateY(${105 - ((velocity/127) * 105)}px)`
+  }
+
 }
 
 export default APCAPI;

@@ -10,6 +10,19 @@ body {
   height: 100vh;
 }
 
+#Pult {
+  position: relative;
+}
+
+#MTG-Logo {
+  position: absolute;
+  height: 35px;
+  aspect-ratio: auto;
+  top: 25px;
+  right: 25px;
+  filter: invert();
+}
+
 .active {
   fill: red;
 }
@@ -118,6 +131,7 @@ body {
 
 .dropdown {
   margin: 10px;
+  min-width: 170px;
 }
 
 .dropdown>h4 {

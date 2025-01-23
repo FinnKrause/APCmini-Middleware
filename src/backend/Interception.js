@@ -1,5 +1,5 @@
 import APCAPI from "./APCAPI.js";
-import {Colors, LModes} from "./constants.js"
+import {Colors, LModes, FaderIndexes} from "./constants.js"
 import {compareMaps} from "../utils/usefulFunctions.js"
 import { getMIDIOutput, getMIDIInput, onNoteOn, getOldDataScheme, onFaderChange } from "../utils/midiwebapi.js";
 
@@ -28,20 +28,25 @@ class Interception {
   async intersept(onMessageConfirmationReceive) {
     onNoteOn(this.fromAPC, (msg) => {
       this.toJoker.send(msg)
-    })
 
-    onFaderChange(this.fromAPC, (msg) => {
-      this.toJoker.send(msg)
+      const {note, velocity} = getOldDataScheme(msg)
+      this.APCmini.setWebUIFader(note, velocity)
     })
 
     onNoteOn(this.fromJoker, msg => {
       const formattedData = getOldDataScheme(msg)
       onMessageConfirmationReceive(formattedData)
+
       
       if (formattedData.velocity == 64) this.APCmini.setButtonLook(formattedData.note, "on");
       else this.APCmini.setButtonLook(formattedData.note, "off");
     })
 
+    onFaderChange(this.fromAPC, (msg) => {
+      this.toJoker.send(msg)
+      console.log(msg)
+      this.APCmini.setWebUIFader(msg)
+    })
 
     console.log("Interception running smoothly");
 
