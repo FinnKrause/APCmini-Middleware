@@ -60,8 +60,11 @@ class APCAPI {
       this.#setWebUIButton(nnote, color.hex, lmode)
 
     } else if (this.#isSCButton(nnote)) {
-      sendNote(this.output, nnote, lmode > 6 ? 0x02 : lmode == 0 ? 0x0 : 0x01, 0)
+      // sendNote(this.output, nnote, lmode > 6 ? 0x02 : lmode == 0 ? 0x0 : 0x01, 0)
+      // if color == black then 0x0 else (if lmode > 6 0x02 else 0x01)
+      sendNote(this.output, nnote, color.velocity == 0 ? 0x0 : (lmode > 6 ? 0x02 : 0x01), 0)
       this.#setWebUIButton(nnote, Colors.green.hex, lmode > 6 ? LModes.Blinking1t2 : lmode == 0 ? 0 : LModes.Brightness100)
+      this.#setWebUIButton(nnote, color.velocity != 0 ? Colors.green.hex : Colors.black.hex, lmode > 6 ? LModes.Blinking1t2 : LModes.Brightness100)
 
     }
   }

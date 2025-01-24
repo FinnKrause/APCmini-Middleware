@@ -1,17 +1,27 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
     Arial, sans-serif;
-  background-color: #252627;
+  /* background-color: #252627;
+  background-color: #000000; */
+  background-image: url("./assets/BG4.jpg");
+  background-size: cover;
+  background-position: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
   place-self: center;
-  color: white;
+  color: var(--fontColor);
   height: 100vh;
 }
 
 #Pult {
   position: relative;
+}
+
+#pultbg {
+  fill: hsl(0%, 0%, 0%);
+  /* backdrop-filter: blur(100px); */
+  opacity: 50%;
 }
 
 #MTG-Logo {
@@ -76,11 +86,12 @@ body {
   display: flex;
   justify-content: center;
   place-items: center;
-  color: black;
 }
 
 #Settings {
   margin-left: 20px;
+  /* max-height: 95vh; */
+  /* overflow-y: scroll; */
   /* background-color: #333; */
   /* padding: 20px; */
 }
@@ -92,15 +103,16 @@ body {
   flex-direction: column;
 
   height: fit-content;
-  background-color: #333;
+  background-color: #33333380;
+
 }
 
 .SettingsSection .header {
-  color: white;
+  color: rgb(165, 165, 165);
   text-align: center;
   padding: 5px 0px;
   font-size: 15px;
-  background-color: #777;
+  background-color: #77777780;
   width: 100%;
 }
 
@@ -113,14 +125,14 @@ body {
   padding: 10px;
   margin: 10px;
   color: white;
-  background-color: #333;
+  background-color: transparent;
   font-weight: bold;
 }
 
 .actionbuttons>button:disabled {
   padding: 10px;
   margin: 10px;
-  background-color: #333;
+  background-color: transparent;
   color: gray;
   cursor: not-allowed;
 }
@@ -136,11 +148,20 @@ body {
 
 .dropdown>h4 {
   margin-bottom: 5px;
-  color: white;
+  color: var(--fontColor);
 }
 
 .dropdownelement {
   height: 1.5rem;
+  background-color: #77777730;
+  outline: none;
+  border: none;
+  color: var(--fontColor);
+}
+
+.dropdownelement>option {
+  background-color: #333;
+  color: var(--fontColor)
 }
 
 .midiButtons {
@@ -151,15 +172,15 @@ body {
 .midiButtons button {
   padding: 10px;
   margin: 10px;
-  color: white;
-  background-color: #777;
+  color: var(--fontColorBrighter);
+  background-color: #77777730;
   font-weight: bold;
 }
 
 .ConfigRow {
   justify-content: space-between;
   margin: 0px 10px;
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .ConfigRow>div {
@@ -174,8 +195,8 @@ body {
 .LookImportExportSettings button {
   padding: 10px;
   margin: 10px;
-  color: white;
-  background-color: #777;
+  color: var(--fontColorBrighter);
+  background-color: #77777730;
   font-weight: bold;
   width: 80%;
 }
@@ -222,8 +243,8 @@ body {
 #UpdateEditButton {
   padding: 10px;
   margin: 10px;
-  color: white;
-  background-color: #777;
+  color: var(--fontColorBrighter);
+  background-color: #77777750;
   font-weight: bold;
 }
 

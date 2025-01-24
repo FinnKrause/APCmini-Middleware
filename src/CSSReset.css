@@ -136,5 +136,30 @@ h4,
 h5,
 p,
 div {
-    color: white;
+    color: var(--fontColor);
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #333;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #777;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #777;
+}
+
+body {
+    --fontColor: rgb(201, 198, 198);
+    --fontColorBrighter: rgb(227, 227, 227);
 }
