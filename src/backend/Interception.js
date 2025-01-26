@@ -2,7 +2,6 @@ import APCAPI from "./APCAPI.js";
 import {Colors, LModes, FaderIndexes} from "./constants.js"
 import {compareMaps} from "../utils/usefulFunctions.js"
 import { getMIDIOutput, getMIDIInput, onNoteOn, getOldDataScheme, onFaderChange } from "../utils/midiwebapi.js";
-
 // const APCAPI = require("./APCAPI.js");
 // const { getMIDIOutput, getMIDIInput, onNoteOn, sendNote, getOldDataScheme, onFaderChange } = require("../utils/midiwebapi.js");
 
@@ -25,18 +24,24 @@ class Interception {
     return Promise.resolve()
   }
 
-  async intersept(onMessageConfirmationReceive) {
+  async intersept(onMessageConfirmationReceive, isMacOS) {
     onNoteOn(this.fromAPC, (msg) => {
       this.toJoker.send(msg)
-
       const {note, velocity} = getOldDataScheme(msg)
-      this.APCmini.setWebUIFader(note, velocity)
+      
+      if (isMacOS && msg[0] !== 176) return;
+      if (note <= FaderIndexes.end && note >= FaderIndexes.start) this.APCmini.setWebUIFader(note, velocity)
     })
 
     onNoteOn(this.fromJoker, msg => {
       const formattedData = getOldDataScheme(msg)
       onMessageConfirmationReceive(formattedData)
 
+      if (isMacOS) {
+        if (msg[0] == 144) this.APCmini.setButtonLook(formattedData.note, "on");
+        else this.APCmini.setButtonLook(formattedData.note, "off");
+        return;
+      }
       
       if (formattedData.velocity == 64) this.APCmini.setButtonLook(formattedData.note, "on");
       else this.APCmini.setButtonLook(formattedData.note, "off");
@@ -44,11 +49,10 @@ class Interception {
 
     onFaderChange(this.fromAPC, (msg) => {
       this.toJoker.send(msg)
-      console.log(msg)
       this.APCmini.setWebUIFader(msg)
     })
 
-    console.log("Interception running smoothly");
+    console.log("Interception running");
 
   }
 

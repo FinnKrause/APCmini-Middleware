@@ -29,24 +29,29 @@
   const interception = new Interception(new Map())
   let selectedItems = new Set()
   let configPath = undefined;
+  let isMacOS = false;
 
   function connectToMIDIDevices() {
     const selected1 = document.getElementById('dropdown1');
     const selected2 = document.getElementById('dropdown2');
     const selected3 = document.getElementById('dropdown3');
     const selected4 = document.getElementById('dropdown4');
+    const isMacOSCheckbox = document.getElementById("isMacOSCheckbox");
+
 
     interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => {
       document.getElementById("midiButtons").removeChild(document.getElementById("connectButton"))
       document.getElementById("midiButtons").removeChild(document.getElementById("reloadButton"))
+      // document.getElementById("MidiSettings").removeChild(document.getElementById("isMacOS"))
       selected1.disabled = true;
       selected2.disabled = true;
       selected3.disabled = true;
       selected4.disabled = true;
+      isMacOSCheckbox.disabled = true;
       interception.intersept(msg => {
         // console.log(msg)
 
-      })
+      }, isMacOS)
     })
 
   }
@@ -82,14 +87,32 @@
       if (result.includes("JokerIn")) {
         selected3.selectedIndex = result.indexOf("JokerIn")
       }
+      else if (result.includes("Joker In")) {
+        selected3.selectedIndex = result.indexOf("Joker In")
+      }
+
       if (result.includes("JokerOut")) {
         selected4.selectedIndex = result.indexOf("JokerOut")
       }
-      if (result.includes("toAPC")) {
-        selected1.selectedIndex = result.indexOf("toAPC")
+      else if (result.includes("Joker Out")) {
+        selected4.selectedIndex = result.indexOf("Joker Out")
       }
-      if (result.includes("fromAPC")) {
+
+      if (result.includes("APC mini mk2")) {
+        selected1.selectedIndex = result.indexOf("toAPC")
+      } else if (result.includes("APC mini mk2 Control")) {
+        isMacOS = true;
+        document.getElementById("isMacOSCheckbox").checked = true;
+        selected1.selectedIndex = result.indexOf("APC mini mk2 Control")
+      }
+
+      if (result.includes("APC mini mk2")) {
         selected2.selectedIndex = result.indexOf("fromAPC")
+      }
+      else if (result.includes("APC mini mk2 Control")) {
+        selected2.selectedIndex = result.indexOf("APC mini mk2 Control")
+        document.getElementById("isMacOSCheckbox").checked = true;
+
       }
     })
 
@@ -369,6 +392,12 @@
 
     }
   })
+
+  const isMacOSCheckbox = document.getElementById("isMacOSCheckbox");
+  isMacOSCheckbox.addEventListener("change", e => {
+    isMacOS = e.target.checked
+  })
+
 
 </script>
 
@@ -681,6 +710,10 @@
               <option value="Bitte wählen"></option>
             </select>
           </div>
+        </div>
+        <div id="isMacOS" class="flexWrapper isMacOS">
+          <input id="isMacOSCheckbox" type="checkbox">
+          <p>Is MacOS?</p>
         </div>
         <div id="midiButtons" class="flexWrapper midiButtons">
           <button id="reloadButton">Reload</button>
