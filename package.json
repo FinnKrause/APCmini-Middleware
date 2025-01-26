@@ -1,8 +1,8 @@
 {
   "name": "electronversion",
-  "productName": "APCmini-DMXJoker-Middleware",
+  "productName": "APCmini",
   "version": "1.0.1",
-  "description": "My Electron application description",
+  "description": "Hi! I don't know what this is. The code is btw pratically shit. Don't touch it",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
