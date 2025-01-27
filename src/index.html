@@ -29,14 +29,14 @@
   const interception = new Interception(new Map())
   let selectedItems = new Set()
   let configPath = undefined;
-  let isMacOS = false;
+  let isMacOS = true;
 
   function connectToMIDIDevices() {
     const selected1 = document.getElementById('dropdown1');
     const selected2 = document.getElementById('dropdown2');
     const selected3 = document.getElementById('dropdown3');
     const selected4 = document.getElementById('dropdown4');
-    const isMacOSCheckbox = document.getElementById("isMacOSCheckbox");
+    // const isMacOSCheckbox = document.getElementById("isMacOSCheckbox");
 
 
     interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => {
@@ -47,7 +47,7 @@
       selected2.disabled = true;
       selected3.disabled = true;
       selected4.disabled = true;
-      isMacOSCheckbox.disabled = true;
+      // isMacOSCheckbox.disabled = true;
       interception.intersept(msg => {
         // console.log(msg)
 
@@ -102,7 +102,7 @@
         selected1.selectedIndex = result.indexOf("APC mini mk2")
       } else if (result.includes("APC mini mk2 Control")) {
         isMacOS = true;
-        document.getElementById("isMacOSCheckbox").checked = true;
+        // document.getElementById("isMacOSCheckbox").checked = true;
         selected1.selectedIndex = result.indexOf("APC mini mk2 Control")
       }
 
@@ -111,7 +111,7 @@
       }
       else if (result.includes("APC mini mk2 Control")) {
         selected2.selectedIndex = result.indexOf("APC mini mk2 Control")
-        document.getElementById("isMacOSCheckbox").checked = true;
+        // document.getElementById("isMacOSCheckbox").checked = true;
 
       }
     })
@@ -393,10 +393,10 @@
     }
   })
 
-  const isMacOSCheckbox = document.getElementById("isMacOSCheckbox");
-  isMacOSCheckbox.addEventListener("change", e => {
-    isMacOS = e.target.checked
-  })
+  // const isMacOSCheckbox = document.getElementById("isMacOSCheckbox");
+  // isMacOSCheckbox.addEventListener("change", e => {
+  //   isMacOS = e.target.checked
+  // })
 
 
 </script>
@@ -711,10 +711,10 @@
             </select>
           </div>
         </div>
-        <div id="isMacOS" class="flexWrapper isMacOS">
+        <!-- <div id="isMacOS" class="flexWrapper isMacOS">
           <input id="isMacOSCheckbox" type="checkbox">
           <p>Is MacOS?</p>
-        </div>
+        </div> -->
         <div id="midiButtons" class="flexWrapper midiButtons">
           <button id="reloadButton">Reload</button>
           <button id="connectButton">Connect</button>

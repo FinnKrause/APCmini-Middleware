@@ -165,8 +165,8 @@ body {
 }
 
 .midiButtons {
-  /* margin-top: 10px;
-  margin-bottom: 10px; */
+  margin-top: 10px;
+  /* margin-bottom: 10px; */
 }
 
 .midiButtons button {
@@ -291,7 +291,7 @@ body {
 
 .isMacOS {
   margin-left: 10px;
-  margin-bottom: 10px;
+  /* margin-bottom: 10px; */
 }
 
 .horizontal {
