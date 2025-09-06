@@ -139,8 +139,8 @@ class Interception {
   lockDesk() {
     if (!this.APCmini) return;
     this.deviceLocked = true;
-    this.APCmini.displayTextAnimation("Locked", 200, true, undefined, undefined, 8, (idx, on) => {
-      this.APCmini.changeButton(idx, on?Colors.green:Colors.blue, LModes.Brightness100)
+    this.APCmini.displayTextAnimation("LOCKED", 200, true, undefined, undefined, 8, (idx, on) => {
+      this.APCmini.changeButton(idx, on?Colors.red:Colors.turquoise, on?LModes.Blinking1t16:LModes.Brightness100)
     })
   }
 
