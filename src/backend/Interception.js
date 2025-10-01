@@ -46,12 +46,12 @@ class Interception {
       onMessageConfirmationReceive(formattedData)
 
       const registeredOn = () => {
-        this.APCmini.setButtonLook(formattedData.note, "on");
+       !this.deviceLocked && this.APCmini.setButtonLook(formattedData.note, "on");
         this.state[formattedData.note] = "on"
       }
 
       const registeredOff = () => {
-        this.APCmini.setButtonLook(formattedData.note, "off");
+        !this.deviceLocked && this.APCmini.setButtonLook(formattedData.note, "off");
         this.state[formattedData.note] = "off"
       }
 
@@ -82,6 +82,16 @@ class Interception {
     console.log("Connections killed")
   }
 
+  reinitializeLabels() { 
+    if (this.APCmini) {
+      this.APCmini.forEach(i => {
+        const DOMElement = document.querySelector("#Button" + i)
+        //Wenn Zahl gewünscht, sofern kein anderer Text, dann hier ein i nach ??
+        DOMElement.textContent = this.defaultLooksMap.get(i)?.label??""
+      })
+    }
+  }
+
   updateLooksmap(newLooksMap) {
     if (newLooksMap == null) {
       console.error("No new Looksmap provided... Returning");
@@ -92,16 +102,24 @@ class Interception {
 
     if (this.APCmini) {
       this.APCmini.updateLook(newLooksMap)
-      this.APCmini.forEach(i => this.APCmini.setButtonLook(i, this.state[i]??"off"))
+      this.APCmini.forEach(i => {
+        const DOMElement = document.querySelector("#Button" + i)
+        DOMElement.textContent = this.defaultLooksMap.get(i)?.label??""
+
+        this.APCmini.setButtonLook(i, this.state[i]??"off")
+      })
     }
   }
 
   updateLook(nnote, newlook) {
     // if (nnote==undefined||newlook==undefined) return;
-    this.defaultLooksMap.set(nnote, newlook)
+    // console.log("Updating look for button "+nnote, newlook, this.defaultLooksMap.get(nnote))
+    // console.log("New Mix looks like this", {...this.defaultLooksMap.get(nnote), ...newlook})
+    
+    this.defaultLooksMap.set(nnote, {...this.defaultLooksMap.get(nnote), ...newlook})
     if (this.APCmini) {
       this.APCmini.updateLook(this.defaultLooksMap)
-      this.APCmini.setButtonLook(nnote, "off")
+      this.APCmini.setButtonLook(nnote, this.state[nnote]??"off")
     }
   }
 
@@ -133,7 +151,7 @@ class Interception {
 
   removeHighlight(nnote) {
     if (!this.APCmini)return;
-    this.APCmini.setButtonLook(nnote, "off")
+    this.APCmini.setButtonLook(nnote, this.state[nnote]??"off")
   }
 
   lockDesk() {

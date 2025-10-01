@@ -1,0 +1,175 @@
+#PultSVG {
+    width: 23.5cm;
+    /* max-width: 2000px; */
+    aspect-ratio: 23.5 / 19.9 !important;
+
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+
+    border-radius: 10px;
+    background-color: #333;
+    border: 2px solid black;
+
+
+    --margin-left: 0.7cm;
+    --button-height: 1cm;
+    --button-width: 2.1cm;
+    --round-button-diameter: 0.8cm;
+    --slider-thickness: 2.1cm;
+    --martix-gap: 3mm;
+    --padding: unset;
+}
+
+
+#PultSVG>* {
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    font-size: 8px;
+}
+
+#PultTop {
+    display: flex;
+    width: 100%;
+    margin-top: 2.2cm;
+    padding: var(--padding);
+    padding-bottom: 0;
+}
+
+#PultBottom {
+    width: 100%;
+    margin-top: .3cm;
+    padding: var(--padding);
+    padding-top: 0;
+
+}
+
+#PultMatrix {
+    display: grid;
+    grid-template-columns: repeat(8, var(--button-width));
+    grid-template-rows: repeat(8, var(--button-height));
+    gap: var(--martix-gap);
+
+    margin-left: var(--margin-left);
+}
+
+#PultSoftKeys {
+    display: grid;
+    grid-template-rows: repeat(8, var(--button-height));
+    gap: var(--martix-gap);
+    place-items: center;
+
+    margin-left: calc(.92cm);
+}
+
+#PultFaderButtons {
+    display: grid;
+    grid-template-columns: repeat(9, var(--button-width));
+    gap: var(--martix-gap);
+    place-items: center;
+
+    margin-left: var(--margin-left);
+    justify-content: flex-start;
+}
+
+.btn-rect {
+    border: black .5mm solid;
+    border-radius: .5mm;
+    border-radius: 5px;
+
+    background-color: #777;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-round {
+    border: black .5mm solid;
+    border-radius: 5px;
+    background-color: #777;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: var(--round-button-diameter);
+    height: var(--round-button-diameter);
+    border-radius: 10%;
+}
+
+
+
+.fader-row {
+    margin-left: var(--margin-left);
+    margin-top: .3cm;
+    display: grid;
+    grid-template-columns: repeat(9, var(--button-width));
+    place-items: center;
+    gap: var(--martix-gap)
+}
+
+/* Each fader unit */
+.fader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: var(--slider-thickness);
+    height: 4.8cm;
+    /* total height of fader module */
+    position: relative;
+}
+
+/* The slot background where the knob travels */
+.fader-slot {
+    width: 100%;
+    height: 100%;
+    background-color: #333;
+    border: 1mm solid black;
+    border-radius: 2mm;
+    position: relative;
+}
+
+/* Movable knob */
+.fader-knob {
+    position: absolute;
+    bottom: .3cm;
+    /* start position */
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Knob rectangle */
+.fader-knob .knob {
+    width: 1.5cm;
+    height: 1.5cm;
+    border-radius: 5mm;
+
+    background-color: #222;
+    border: 0.4mm solid black;
+    border-radius: 1mm;
+}
+
+/* White line on knob */
+.fader-knob .knob-line {
+    position: absolute;
+    width: 1cm;
+    height: 1mm;
+    border-radius: 1mm;
+
+    background-color: #ddd;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+}
+
+
+#PultSVG [contenteditable="true"] {
+    outline: none;
+    user-select: none;
+    /* prevents highlighting */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    caret-color: transparent;
+    /* no text cursor */
+}

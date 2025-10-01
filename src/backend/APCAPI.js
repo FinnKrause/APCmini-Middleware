@@ -75,7 +75,7 @@ class APCAPI {
   offNote(nnote) {
     if (!this.#isButtonPressValid(nnote)) return;
     sendNote(this.output, nnote, 0, 0)
-    this.#setWebUIButton(nnote, 0, 0)
+    this.#setWebUIButton(nnote, "#000", 0)
   }
 
   offAll() {
@@ -138,14 +138,14 @@ class APCAPI {
     return true;
   }
 
-  #setWebUIButton(nnote, color, lmode) {
+  #setWebUIButton(nnote, color, lmode, label) {
     const element = document.querySelector("#Button" + nnote)
 
     if (element == null) {
       console.error("WebUI could not be updated because button "+nnote+" is not available!");
       return;
     }
-    element.setAttribute("fill", color)
+    element.style.backgroundColor = color==0?"black":color;
 
     if (lmode >= 7 && lmode <= 10) {
       element.classList.remove("blinking")
@@ -168,7 +168,7 @@ class APCAPI {
   setWebUIFader(nnote, velocity) {
     if (nnote == null || velocity == null) return;
     const fader = document.querySelector("#Fader"+nnote)
-    fader.style.transform = `translateY(${105 - ((velocity/127) * 105)}px)`
+    fader.style.transform = `translate(-50%, -${((velocity/127) * 100)}px)`
   }
 
   displayTextAnimation(text = "TEST", speed = 200, infinite = false, duration, paddingFront = 2, paddingEnd = 2, customPixelActivationFunction = (idx, on) => {

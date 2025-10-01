@@ -115,7 +115,7 @@ const LModes = {
 
 const MatrixButtonIdexes = { start: 0, end: 63 };
 const SceneLaunchButtonIndexes = { start: 112, end: 119 };
-const TrackButtonIndexes = { start: 100, end: 107 };
+const TrackButtonIndexes = { start: 100, end: 108 };
 const FaderIndexes = { start: 48, end: 56 };
 const BottmonRightButtonIdex = 122;
 

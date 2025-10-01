@@ -19,7 +19,8 @@ body {
 }
 
 #pultbg {
-  fill: hsl(0%, 0%, 0%);
+  /* fill: hsl(0%, 0%, 0%); */
+  background-color: hsl(0%, 0%, 0%);
   /* backdrop-filter: blur(100px); */
   opacity: 50%;
 }
@@ -44,7 +45,8 @@ body {
 }
 
 .active {
-  fill: red;
+  /* fill: red; */
+  background-color: red;
 }
 
 .lowerBrightness {
@@ -198,10 +200,6 @@ body {
   margin: 10px;
 }
 
-.ConfigRow>div:first-child {
-  /* flex: 2; */
-}
-
 .LookImportExportSettings button {
   padding: 10px;
   margin: 10px;
@@ -250,12 +248,40 @@ body {
   margin: 10px;
 }
 
-#UpdateEditButton {
+.ButtonLabelSection {
+  display: flex;
+  align-items: center;
+  margin: 0px 10px 0px 10px;
+}
+
+#ButtonLabelInput {
   padding: 10px;
-  margin: 10px;
   color: var(--fontColorBrighter);
+  outline-style: none;
+  outline: none;
+  border: none;
   background-color: #77777750;
   font-weight: bold;
+  flex: 1
+}
+
+.LabelOverwriteWarningSection {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.LabelOverwriteWarning {
+  font-size: 10px;
+  text-align: right;
+}
+
+#UpdateEditButton,
+#UpdateEditButton:focus {
+  padding: 10px;
+  margin: 10px;
+  color: var(--fontColor);
+  background-color: #77777750;
 }
 
 .maincore {
@@ -288,10 +314,11 @@ body {
 
 
 .selected {
-  /* fill: lightblue; */
-  stroke: rgb(0, 191, 255);
+  background-color: lightblue;
+  border: 2px solid rgb(0, 191, 255);
   filter: brightness(1);
   stroke-width: 5px;
+  color: lightblue
 }
 
 .flexWrapper {
