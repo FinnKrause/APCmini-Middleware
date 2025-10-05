@@ -1,8 +1,7 @@
   import { getMIDIInputs } from "./utils/midiwebapi.js"
   import { findClosestColor, getColorFromHex } from "./utils/colorMagic.js"
-  import { Colors, LModes, defaultOffLook, defaultOnLook } from "./backend/constants.js";
+  import { defaultOffLook, defaultOnLook } from "./backend/constants.js";
   import Interception from "./backend/Interception.js"
-  import APCAPI from "./backend/APCAPI.js";
 
   const interception = new Interception(new Map(), UIUpdateLockStatus)
   let selectedItems = new Set()
@@ -184,6 +183,53 @@
     domPathElement.innerText = "Loaded Config: " + configPath
   }
 
+  function updateAllButtonStates() {
+    updateNewEmptyProjectButtonState()
+    updateDiscardChangesButtonState()
+    updateOpenFileButtonState()
+    updateSaveButtonState()
+  }
+
+  function updateNewEmptyProjectButtonState() {
+    const newEmptyProjectButton = document.getElementById("NewEmptyProjectButton")
+    if (interception.defaultLooksMap.size === 0 || interception.canOverwrite() === false) {
+      newEmptyProjectButton.disabled = true;
+    }
+    else {
+      newEmptyProjectButton.disabled = false;
+    }
+  }
+
+  function updateDiscardChangesButtonState() {
+    const discardChangesButton = document.getElementById("DiscardChangesButton")
+    if (interception.canOverwrite()) {
+      discardChangesButton.disabled = true;
+    }
+    else {
+      discardChangesButton.disabled = false;
+    }
+  }
+
+  function updateOpenFileButtonState() {
+    const loadConfigButton = document.getElementById("loadConfigButton")
+    if (interception.canOverwrite()) {
+      loadConfigButton.disabled = false;
+    }
+    else {
+      loadConfigButton.disabled = true;
+    }
+  }
+
+  function updateSaveButtonState() {
+    const saveButton = document.getElementById("saveButton")
+    if (configPath && !interception.canOverwrite()) {
+      saveButton.disabled = false;
+    }
+    else {
+      saveButton.disabled = true;
+    }
+  }
+
   function updateLook() {
     const offcolor = document.getElementById("offcolor")
     const oncolor = document.getElementById("oncolor")
@@ -214,9 +260,9 @@
 
     clearAllSelected();
 
-    document.getElementById("NewEmptyProjectButton").disabled = true
-    document.getElementById("DiscardChangesButton").disabled = false
-    document.getElementById("loadConfigButton").disabled = true;
+    // document.getElementById("NewEmptyProjectButton").disabled = true
+    // document.getElementById("DiscardChangesButton").disabled = false
+    // document.getElementById("loadConfigButton").disabled = true;
 
     if (configPath) document.getElementById("saveButton").disabled = false;
   }
@@ -262,10 +308,7 @@
       const result = await window.electronAPI.writeFile(configPath, JSON.stringify(MapToJSON(interception.defaultLooksMap)))
       interception.updateOriginalLooksMap();
 
-      document.getElementById("loadConfigButton").disabled = false;
-      document.getElementById("DiscardChangesButton").disabled = true
-      document.getElementById("NewEmptyProjectButton").disabled = false
-      saveButton.disabled = true;
+      updateAllButtonStates()
 
 
     }
@@ -288,9 +331,10 @@
 
       interception.updateOriginalLooksMap();
       updateConfigPath(filePath)
-      document.getElementById("NewEmptyProjectButton").disabled = false;
-      document.getElementById("DiscardChangesButton").disabled = true
-      document.getElementById("loadConfigButton").disabled = false;
+      // document.getElementById("NewEmptyProjectButton").disabled = false;
+      // document.getElementById("DiscardChangesButton").disabled = true
+      // document.getElementById("loadConfigButton").disabled = false;
+      updateAllButtonStates()
 
 
       alert("The config was saved at \"" + filePath + "\".")
@@ -325,9 +369,10 @@
             const newMap = JSONToMAP(JSON.parse(res.data));
             interception.updateLooksmap(newMap)
 
-            document.getElementById("NewEmptyProjectButton").disabled = false;
-            document.getElementById("DiscardChangesButton").disabled = true
-            document.getElementById("loadConfigButton").disabled = false;
+            // document.getElementById("NewEmptyProjectButton").disabled = false;
+            // document.getElementById("DiscardChangesButton").disabled = true
+            // document.getElementById("loadConfigButton").disabled = false;
+            updateAllButtonStates();
 
 
           } else {
@@ -385,9 +430,10 @@
     NewEmptyProjectButton.onclick = () => {
       document.getElementById("LoadedConfigName").innerText = ""
       configPath = undefined
-      document.getElementById("NewEmptyProjectButton").disabled = true
-      document.getElementById("saveButton").disabled = true;
-      document.getElementById("loadConfigButton").disabled = false;
+      // document.getElementById("NewEmptyProjectButton").disabled = true
+      // document.getElementById("saveButton").disabled = true;
+      // document.getElementById("loadConfigButton").disabled = false;
+      updateAllButtonStates()
 
       interception.updateLooksmap(new Map())
     }
@@ -395,10 +441,11 @@
     DiscardChangesButton.onclick = () => {
 
       interception.discardAllChanges();
-      document.getElementById("NewEmptyProjectButton").disabled = false
-      document.getElementById("DiscardChangesButton").disabled = true
-      document.getElementById("saveButton").disabled = true;
-      document.getElementById("loadConfigButton").disabled = false;
+      // document.getElementById("NewEmptyProjectButton").disabled = false
+      // document.getElementById("DiscardChangesButton").disabled = true
+      // document.getElementById("saveButton").disabled = true;
+      // document.getElementById("loadConfigButton").disabled = false;
+      updateAllButtonStates();
 
     }
   })

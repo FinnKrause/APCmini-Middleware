@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, session, ipcMain, dialog, Menu } = require("electron");
 const path = require("node:path");
 const started = require("electron-squirrel-startup");
 const { readFile, writeFile } = require("fs");
@@ -31,13 +31,22 @@ const createWindow = () => {
       enableBlinkFeatures: "Midi",
     },
   });
-  mainWindow.removeMenu();
-
+  
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, "index.html"));
-
+  
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  mainWindow.removeMenu();
+  // const menu = Menu.buildFromTemplate([
+  //   {role: "fileMenu", submenu: [
+  //     {label:"Open", click: () => {}, enabled: false},
+  //     {label:"Save", click: () => {}},
+  //     {label:"Save As", click: () => {}},
+  //   ]}, 
+
+  // ]);
+  // Menu.setApplicationMenu(menu);
+  mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
