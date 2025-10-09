@@ -158,8 +158,3 @@ div {
 ::-webkit-scrollbar-thumb:hover {
     background: #777;
 }
-
-body {
-    --fontColor: rgb(201, 198, 198);
-    --fontColorBrighter: rgb(227, 227, 227);
-}

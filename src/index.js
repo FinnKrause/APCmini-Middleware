@@ -1,12 +1,20 @@
-const { app, BrowserWindow, session, ipcMain, dialog, Menu } = require("electron");
+const { app, BrowserWindow, session, ipcMain, dialog, Menu, ipcRenderer } = require("electron");
 const path = require("node:path");
 const started = require("electron-squirrel-startup");
 const { readFile, writeFile } = require("fs");
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
+
+let mainWindow;
+let currentMenuState = {
+  newProject: false,
+  openFile: true,
+  save: false,
+  saveAs: true,
+  discardChanges: false
+};
 
 const createWindow = () => {
   // Create the browser window.
@@ -21,14 +29,14 @@ const createWindow = () => {
     }
   );
 
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1360,
     height: 850,
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      enableBlinkFeatures: "Midi",
+      // enableBlinkFeatures: "Midi",
     },
   });
   
@@ -36,22 +44,10 @@ const createWindow = () => {
   mainWindow.loadFile(path.join(__dirname, "index.html"));
   
   // Open the DevTools.
-  mainWindow.removeMenu();
-  // const menu = Menu.buildFromTemplate([
-  //   {role: "fileMenu", submenu: [
-  //     {label:"Open", click: () => {}, enabled: false},
-  //     {label:"Save", click: () => {}},
-  //     {label:"Save As", click: () => {}},
-  //   ]}, 
-
-  // ]);
-  // Menu.setApplicationMenu(menu);
-  mainWindow.webContents.openDevTools();
+  Menu.setApplicationMenu(buildMenuTemplate());
+  // mainWindow.webContents.openDevTools();
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   createWindow();
 
@@ -64,9 +60,6 @@ app.whenReady().then(() => {
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
@@ -104,5 +97,49 @@ ipcMain.handle("write-file", async (event, filePath, data) => {
   }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
+ipcMain.handle("update-menu-state", async (event, menuStates) => {
+  updateMenuState(menuStates);
+  return { success: true };
+});
+
+
+function buildMenuTemplate() {
+  return Menu.buildFromTemplate([
+    {label: "Lol", submenu: [
+      // open, save and save as buttons
+
+    ]}, 
+    {label: "File", submenu: [
+      {label: "New Project File",type: "normal", click: () => {
+        mainWindow.webContents.send("menu-click", "newProject");
+      }, enabled: currentMenuState.newProject, accelerator: 'CmdOrCtrl+N',},
+
+      {type: "separator"},
+
+      {label: "Open File", type: "normal", enabled: currentMenuState.openFile, accelerator: "CmdOrCtrl+O", click: () => {
+        mainWindow.webContents.send("menu-click", "openFile");
+      }},
+
+      {type: "separator"},
+
+      {label: "Save", type: "normal", enabled: currentMenuState.save, accelerator: "CmdOrCtrl+S", click: () => {
+        mainWindow.webContents.send("menu-click", "save");
+      }},
+      {label: "Save As", type: "normal", enabled: currentMenuState.saveAs, accelerator: "CmdOrCtrl+Shift+S", click: () => {
+        mainWindow.webContents.send("menu-click", "saveAs");
+      }},
+
+      {type: "separator"},
+
+      {label: "Discard unsaved Changes", type: "normal", enabled: currentMenuState.discardChanges, click: () => {
+        mainWindow.webContents.send("menu-click", "discardChanges");
+      }},
+    ]},
+
+  ])
+}
+
+function updateMenuState(newState) {
+  currentMenuState = { ...currentMenuState, ...newState };
+  Menu.setApplicationMenu(buildMenuTemplate());
+}

@@ -9,17 +9,6 @@ import {
   BottmonRightButtonIdex
 } from "./constants.js";
 
-// const { sendNote } = require("../utils/midiwebapi.js");
-// const {
-//   SceneLaunchButtonIndexes,
-//   TrackButtonIndexes,
-//   MatrixButtonIdexes,
-//   LModes,
-//   Colors,
-//   BottmonRightButtonIdex,
-// } = require("./constants.js");
-
-
 class APCAPI {
 
   animationInterval = null;

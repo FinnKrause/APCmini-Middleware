@@ -36,7 +36,7 @@ class Interception {
       if (velocity == 127) this.#setCurrentlyPressedNote(note)
       else if (velocity === 0) this.#deleteCurrentlyPressedNote(note)
 
-      
+      console.log(note, velocity)
       if (msg[0] !== 176) return;
       if (note <= FaderIndexes.end && note >= FaderIndexes.start) this.APCmini.setWebUIFader(note, velocity)
     })
@@ -69,9 +69,6 @@ class Interception {
       this.toJoker.send(msg)
       this.APCmini.setWebUIFader(msg)
     })
-
-    console.log("Interception running");
-
   }
 
   killConnection() {
@@ -79,7 +76,6 @@ class Interception {
     this.toAPC.close();
     this.fromJoker.close();
     this.toJoker.close();
-    console.log("Connections killed")
   }
 
   reinitializeLabels() { 
@@ -158,7 +154,7 @@ class Interception {
     if (!this.APCmini) return;
     this.deviceLocked = true;
     this.APCmini.displayTextAnimation("LOCKED", 200, true, undefined, undefined, 8, (idx, on) => {
-      this.APCmini.changeButton(idx, on?Colors.red:Colors.turquoise, on?LModes.Blinking1t16:LModes.Brightness100)
+      this.APCmini.changeButton(idx, on?Colors.red:Colors.blue, on?LModes.Brightness100:LModes.Brightness100)
     })
   }
 

@@ -3,7 +3,7 @@ body {
     Arial, sans-serif;
   /* background-color: #252627;
   background-color: #000000; */
-  background-image: url("./assets/BG4.jpg");
+  background-image: url("./assets/BG3.jpg");
   background-size: cover;
   background-position: center;
   display: flex;
@@ -18,12 +18,7 @@ body {
   position: relative;
 }
 
-#pultbg {
-  /* fill: hsl(0%, 0%, 0%); */
-  background-color: hsl(0%, 0%, 0%);
-  /* backdrop-filter: blur(100px); */
-  opacity: 50%;
-}
+
 
 #MTG-Logo {
   position: absolute;
@@ -31,11 +26,14 @@ body {
   aspect-ratio: auto;
   top: 25px;
   right: 25px;
+  z-index: 2;
+  ;
   filter: invert();
 }
 
 .Lock {
   position: absolute;
+  z-index: 2;
   display: none;
   height: 30px;
   width: 30px;
@@ -102,10 +100,10 @@ body {
 
 #Settings {
   margin-left: 20px;
-  /* max-height: 95vh; */
-  /* overflow-y: scroll; */
-  /* background-color: #333; */
-  /* padding: 20px; */
+}
+
+#Settings * {
+  color: var(--fontColor)
 }
 
 .SettingsSection {
@@ -115,8 +113,11 @@ body {
   flex-direction: column;
 
   height: fit-content;
-  background-color: #33333380;
+  background-color: var(--console-background);
+  border-radius: 10px;
 
+  overflow: hidden;
+  backdrop-filter: blur(var(--glass-blur));
 }
 
 .SettingsSection .header {
@@ -124,7 +125,7 @@ body {
   text-align: center;
   padding: 5px 0px;
   font-size: 15px;
-  background-color: #77777780;
+  background-color: var(--console-lighter-background);
   width: 100%;
 }
 
@@ -136,7 +137,7 @@ body {
 .actionbuttons>button {
   padding: 10px;
   margin: 10px;
-  color: white;
+  color: var(--fontColor);
   background-color: transparent;
   font-weight: bold;
 }
@@ -144,8 +145,8 @@ body {
 .actionbuttons>button:disabled {
   padding: 10px;
   margin: 10px;
-  background-color: transparent;
-  color: gray;
+  background-color: var(--console-background);
+  color: var(--deactivated-font-color);
   cursor: not-allowed;
 }
 
@@ -165,14 +166,14 @@ body {
 
 .dropdownelement {
   height: 1.5rem;
-  background-color: #77777730;
+  background-color: var(--console-lighter-background);
   outline: none;
   border: none;
   color: var(--fontColor);
 }
 
 .dropdownelement>option {
-  background-color: #333;
+  background-color: var(--console-lighter-background);
   color: var(--fontColor)
 }
 
@@ -185,7 +186,7 @@ body {
   padding: 10px;
   margin: 0px 10px 10px 10px;
   color: var(--fontColorBrighter);
-  background-color: #77777730;
+  background-color: var(--console-lighter-background);
   font-weight: bold;
 }
 
@@ -204,7 +205,7 @@ body {
   padding: 10px;
   margin: 10px;
   color: var(--fontColorBrighter);
-  background-color: #77777730;
+  background-color: var(--console-lighter-background);
   font-weight: bold;
   width: 80%;
 }
@@ -223,10 +224,17 @@ body {
 
 #loadConfigButton:disabled,
 #saveButton:disabled,
-#saveConfigButton:disabled {
-  background-color: #333;
-  color: gray;
+#saveConfigButton:disabled,
+#NewEmptyProjectButton:disabled,
+#DiscardChangesButton:disabled {
+  background-color: var(--console-background) !important;
+  color: var(--deactivated-font-color) !important;
   cursor: not-allowed;
+}
+
+#NewEmptyProjectButton:disabled,
+#DiscardChangesButton:disabled {
+  background-color: transparent !important;
 }
 
 #LoadedConfigName {
@@ -260,7 +268,7 @@ body {
   outline-style: none;
   outline: none;
   border: none;
-  background-color: #77777750;
+  background-color: var(--console-lighter-background);
   font-weight: bold;
   flex: 1
 }
@@ -281,7 +289,7 @@ body {
   padding: 10px;
   margin: 10px;
   color: var(--fontColor);
-  background-color: #77777750;
+  background-color: var(--console-lighter-background);
 }
 
 .maincore {
@@ -352,16 +360,52 @@ body {
   margin: 0px 2.5px;
   border-radius: 2px;
   width: fit-content;
-  background-color: rgb(45, 45, 45);
-  color: white;
+  background-color: var(--console-lighter-background);
+  color: var(--fontColor);
   font-size: smaller;
   text-align: center;
 }
 
-/* .selectedCell:first-child {
-  background-color: #999;
+.ColorPicker {
+  width: 100px;
+  height: 40px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
- */
 
-/* Specific Section Style */
-#NewEmptyProjectButton {}
+.ColorPicker:hover,
+.ConfigButton:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.ColorPicker:active,
+.ConfigButton:active {
+  transform: scale(0.98);
+}
+
+.ColorPicker::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+  padding: 0;
+  margin: 0;
+}
+
+.ColorPicker::-webkit-color-swatch-wrapper {
+  border: none;
+  border-radius: 5px;
+  padding: 0;
+  margin: 0;
+}
+
+.ColorPicker::-moz-color-swatch {
+  border: none;
+  border-radius: 5px;
+}

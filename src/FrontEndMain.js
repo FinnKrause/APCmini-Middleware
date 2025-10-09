@@ -5,7 +5,23 @@
 
   const interception = new Interception(new Map(), UIUpdateLockStatus)
   let selectedItems = new Set()
-  let configPath = undefined;
+  let projectFilePath = undefined;
+
+  //Global HTML Elements
+  const lockOpen = document.getElementById("lock-open");
+  const lockClosed = document.getElementById("lock-closed");
+
+  // Menu Clicks
+  window.toFrontEnd.onMenuClick((data) => {
+    switch (data) {
+      case "newProject": NewEmptyProjectButtonClick(); break;
+      case "openFile": loadConfigButtonClick(); break;
+      case "save": saveButtonClick(); break;
+      case "saveAs": saveAsButtonClick(); break;
+      case "discardChanges": discardChangesButtonClick(); break;
+      default: break;
+    }
+  })
 
   function connectToMIDIDevices() {
     const selected1 = document.getElementById('dropdown1');
@@ -127,9 +143,9 @@
     document.getElementById("ButtonLabelInput").disabled = true
     document.getElementById("OverwriteLabelCheckbox").disabled = true
 
-    on.value = "#FFFFFF"
+    on.value = "#000000ff"
     on.disabled = true
-    off.value = "#FFFFFF"
+    off.value = "#000000ff"
     off.disabled = true
     document.getElementById("ButtonLabelInput").value = ""
     document.getElementById("OverwriteLabelCheckbox").checked = false
@@ -178,9 +194,9 @@
   }
 
   function updateConfigPath(newPath) {
-    configPath = newPath;
+    projectFilePath = newPath;
     const domPathElement = document.getElementById("LoadedConfigName")
-    domPathElement.innerText = "Loaded Config: " + configPath
+    domPathElement.innerText = "Loaded Config: " + projectFilePath
   }
 
   function updateAllButtonStates() {
@@ -191,43 +207,50 @@
   }
 
   function updateNewEmptyProjectButtonState() {
+    //! ACHTUNG: Logik umgedreht, da Button disabled sein soll wenn true
     const newEmptyProjectButton = document.getElementById("NewEmptyProjectButton")
-    if (interception.defaultLooksMap.size === 0 || interception.canOverwrite() === false) {
-      newEmptyProjectButton.disabled = true;
-    }
-    else {
-      newEmptyProjectButton.disabled = false;
-    }
+    const ButtonDisabledState = (interception.defaultLooksMap.size === 0 || interception.canOverwrite() === false)
+
+    newEmptyProjectButton.disabled = ButtonDisabledState;
+    window.electronAPI.updateMenuState({ newProject: !ButtonDisabledState })
+    //
+    // if (interception.defaultLooksMap.size === 0 || interception.canOverwrite() === false) {
+    //   newEmptyProjectButton.disabled = true;
+    // }
+    // else {
+    //   newEmptyProjectButton.disabled = false;
+    // }
   }
 
   function updateDiscardChangesButtonState() {
     const discardChangesButton = document.getElementById("DiscardChangesButton")
-    if (interception.canOverwrite()) {
-      discardChangesButton.disabled = true;
-    }
-    else {
-      discardChangesButton.disabled = false;
-    }
+    const ButtonEnabledState = (!interception.canOverwrite())
+
+    discardChangesButton.disabled = !ButtonEnabledState;
+    window.electronAPI.updateMenuState({ discardChanges: ButtonEnabledState })
+    // if (interception.canOverwrite()) {
+    //   discardChangesButton.disabled = true;
+    // }
+    // else {
+    //   discardChangesButton.disabled = false;
+    // }
   }
 
   function updateOpenFileButtonState() {
     const loadConfigButton = document.getElementById("loadConfigButton")
-    if (interception.canOverwrite()) {
-      loadConfigButton.disabled = false;
-    }
-    else {
-      loadConfigButton.disabled = true;
-    }
+    const ButtonEnabledState = (interception.canOverwrite())
+    
+    loadConfigButton.disabled = !ButtonEnabledState;
+    window.electronAPI.updateMenuState({ openFile: ButtonEnabledState })
+
   }
 
   function updateSaveButtonState() {
     const saveButton = document.getElementById("saveButton")
-    if (configPath && !interception.canOverwrite()) {
-      saveButton.disabled = false;
-    }
-    else {
-      saveButton.disabled = true;
-    }
+    const ButtonEnabledState = (projectFilePath && !interception.canOverwrite())==true
+
+    saveButton.disabled = !ButtonEnabledState;
+    window.electronAPI.updateMenuState({save: ButtonEnabledState})
   }
 
   function updateLook() {
@@ -264,11 +287,10 @@
     // document.getElementById("DiscardChangesButton").disabled = false
     // document.getElementById("loadConfigButton").disabled = true;
 
-    if (configPath) document.getElementById("saveButton").disabled = false;
+    // if (projectFilePath) document.getElementById("saveButton").disabled = false;
+    updateAllButtonStates()
   }
 
-  const lockOpen = document.getElementById("lock-open");
-  const lockClosed = document.getElementById("lock-closed");
   lockOpen.addEventListener("click", () => {
     interception.lockDesk();
     UIUpdateLockStatus();
@@ -279,42 +301,27 @@
     lockOpen.style.display = interception.isDeskLocked() ? "none" : "block"
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    fillMIDIMenu()
+  async function NewEmptyProjectButtonClick() {
+    document.getElementById("LoadedConfigName").innerText = ""
+    projectFilePath = undefined
+    updateAllButtonStates()
+    interception.updateLooksmap(new Map())
+  }
 
-    const connectButton = document.getElementById("connectButton")
-    const reloadButton = document.getElementById("reloadButton").onclick = fillMIDIMenu
-    connectButton.onclick = () => {
-      const selected1 = document.getElementById('dropdown1');
-      const selected2 = document.getElementById('dropdown2');
-      const selected3 = document.getElementById('dropdown3');
-      const selected4 = document.getElementById('dropdown4');
-      if (!(selected1.value != "Bitte wählen" && selected2.value != "Bitte wählen" && selected3.value != "Bitte wählen" && selected4.value != "Bitte wählen" && (new Set([selected1.value, selected2.value, selected3.value, selected4.value]).size >= 3))) {
-        // Wenn Duplikate oder nicht ausgewählt
-        alert("The current MIDI Selection is not valid. Check that the program 'loopMIDI' is running and that the MIDI Device is connected!")
-        return;
-      }
-
-      connectToMIDIDevices();
-    }
-
-    const saveButton = document.getElementById("saveButton")
-    saveButton.onclick = async () => {
-      if (configPath == undefined) {
+  async function saveButtonClick() {
+      if (projectFilePath == undefined) {
         alert("No config loaded. Cannot save")
         return;
       }
 
-      const result = await window.electronAPI.writeFile(configPath, JSON.stringify(MapToJSON(interception.defaultLooksMap)))
+      const result = await window.electronAPI.writeFile(projectFilePath, JSON.stringify(MapToJSON(interception.defaultLooksMap)))
       interception.updateOriginalLooksMap();
 
       updateAllButtonStates()
 
+  }
 
-    }
-
-    const saveConfigButton = document.getElementById("saveConfigButton")
-    saveConfigButton.onclick = async () => {
+  async function saveAsButtonClick() {
       const { canceled, filePath } = await window.electronAPI.showSaveDialog({
         buttonLabel: "Save config",
         defaultPath: `BÄN-${Date.now()}.tk`
@@ -338,10 +345,9 @@
 
 
       alert("The config was saved at \"" + filePath + "\".")
-    }
+  }
 
-    const loadConfigButton = document.getElementById("loadConfigButton")
-    loadConfigButton.onclick = async () => {
+  async function loadConfigButtonClick() {
 
       if (!interception.canOverwrite()) {
         alert("Please save your current config before importing a new one. Otherwise your work will be gone forever.")
@@ -354,7 +360,7 @@
         filters: [
           { name: "MTG-Technik", extensions: ["tk"] },
           // { name: "All Files", extensions: ["*"] },
-        ],
+        ], 
       };
 
       const result = await window.electronAPI.openFileDialog(options);
@@ -368,10 +374,6 @@
 
             const newMap = JSONToMAP(JSON.parse(res.data));
             interception.updateLooksmap(newMap)
-
-            // document.getElementById("NewEmptyProjectButton").disabled = false;
-            // document.getElementById("DiscardChangesButton").disabled = true
-            // document.getElementById("loadConfigButton").disabled = false;
             updateAllButtonStates();
 
 
@@ -382,10 +384,41 @@
 
         updateConfigPath(filePath)
 
-      } else {
-        console.log("Open dialog was canceled.");
+      } 
+  }
+
+  async function discardChangesButtonClick() {
+    interception.discardAllChanges();
+    updateAllButtonStates();
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    fillMIDIMenu()
+
+    const connectButton = document.getElementById("connectButton")
+    const reloadButton = document.getElementById("reloadButton").onclick = fillMIDIMenu
+    connectButton.onclick = () => {
+      const selected1 = document.getElementById('dropdown1');
+      const selected2 = document.getElementById('dropdown2');
+      const selected3 = document.getElementById('dropdown3');
+      const selected4 = document.getElementById('dropdown4');
+      if (!(selected1.value != "Bitte wählen" && selected2.value != "Bitte wählen" && selected3.value != "Bitte wählen" && selected4.value != "Bitte wählen" && (new Set([selected1.value, selected2.value, selected3.value, selected4.value]).size >= 3))) {
+        // Wenn Duplikate oder nicht ausgewählt
+        alert("The current MIDI Selection is not valid. Check that the program 'loopMIDI' is running and that the MIDI Device is connected!")
+        return;
       }
+
+      connectToMIDIDevices();
     }
+
+    const saveButton = document.getElementById("saveButton")
+    saveButton.onclick = saveButtonClick
+
+    const saveConfigButton = document.getElementById("saveConfigButton")
+    saveConfigButton.onclick = saveAsButtonClick
+
+    const loadConfigButton = document.getElementById("loadConfigButton")
+    loadConfigButton.onclick = loadConfigButtonClick
 
     const pultSVG = document.getElementById("PultSVG")
     pultSVG.onclick = (e) => {
@@ -413,39 +446,19 @@
 
     const offcolor = document.getElementById("offcolor")
     const oncolor = document.getElementById("oncolor")
-    // const ButtonLabelInput = document.getElementById("ButtonLabelInput")
     offcolor.onchange = i => {
       i.target.value = findClosestColor(i.target.value).hex
-
     }
     oncolor.onchange = i => {
       i.target.value = findClosestColor(i.target.value).hex
-
     }
 
     const UpdateEditButton = document.getElementById("UpdateEditButton")
     UpdateEditButton.onclick = updateLook
 
     const NewEmptyProjectButton = document.getElementById("NewEmptyProjectButton")
-    NewEmptyProjectButton.onclick = () => {
-      document.getElementById("LoadedConfigName").innerText = ""
-      configPath = undefined
-      // document.getElementById("NewEmptyProjectButton").disabled = true
-      // document.getElementById("saveButton").disabled = true;
-      // document.getElementById("loadConfigButton").disabled = false;
-      updateAllButtonStates()
+    NewEmptyProjectButton.onclick = NewEmptyProjectButtonClick
 
-      interception.updateLooksmap(new Map())
-    }
     const DiscardChangesButton = document.getElementById("DiscardChangesButton")
-    DiscardChangesButton.onclick = () => {
-
-      interception.discardAllChanges();
-      // document.getElementById("NewEmptyProjectButton").disabled = false
-      // document.getElementById("DiscardChangesButton").disabled = true
-      // document.getElementById("saveButton").disabled = true;
-      // document.getElementById("loadConfigButton").disabled = false;
-      updateAllButtonStates();
-
-    }
+    DiscardChangesButton.onclick = discardChangesButtonClick
   })

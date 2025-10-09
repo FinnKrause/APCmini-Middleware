@@ -5,6 +5,8 @@
   <meta charset="UTF-8" />
   <title>Theatertechnik MIDI Software</title>
   <link rel="stylesheet" href="CSSReset.css" />
+  <link rel="stylesheet" href="CSSVARS.css" />
+  <link rel="stylesheet" href="LiquidGlass.css" />
   <link rel="stylesheet" href="Pult/Pult.css" />
   <link rel="stylesheet" href="index.css" />
 </head>
@@ -19,8 +21,8 @@
  -->
 
 <body>
-  <!-- <h1 class="Header">Theatertechnik MIDI-Software</h1> -->
   <div class="bottomPart">
+
     <div id="Pult">
       <svg id="lock-closed" class="Lock" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
         fill="none" viewBox="0 0 24 24">
@@ -35,9 +37,8 @@
       </svg>
 
       <img id="MTG-Logo" src="./assets/MTG.webp" alt="MTG-Logo">
-      <!-- <img id="MTG-Logo" src="./assets/M1-Logo.webp" alt="MTG-Logo"> -->
 
-      <div id="PultSVG">
+      <div id="PultSVG" class="liquid-glass">
 
         <div id="PultTop">
           <div id="PultMatrix" aria-label="button grid (8x8)">
@@ -225,17 +226,14 @@
           </div>
         </div>
 
-        <!-- RIGHT column — vertical stack of round buttons Button112..119 positioned to match the rows -->
-
-
       </div>
     </div>
-    <div id="Settings">
+    <div id="Settings" class="">
       <div class="SettingsSection">
         <h2 class="header">Actions</h2>
         <div class="flexWrapper actionbuttons">
-          <button id="NewEmptyProjectButton" disabled>Create new empty project</button>
-          <button id="DiscardChangesButton" disabled>Discard all changes</button>
+          <button class="ConfigButton" id="NewEmptyProjectButton" disabled>Create new empty project</button>
+          <button class="ConfigButton" id="DiscardChangesButton" disabled>Discard all changes</button>
         </div>
       </div>
       <div class="SettingsSection" id="MidiSettings">
@@ -271,8 +269,8 @@
         </div>
 
         <div id="midiButtons" class="flexWrapper midiButtons">
-          <button id="reloadButton">Reload</button>
-          <button id="connectButton">Connect</button>
+          <button class="ConfigButton" id="reloadButton">Reload</button>
+          <button class="ConfigButton" id="connectButton">Connect</button>
         </div>
       </div>
       <div class="SettingsSection LookImportExportSettings">
@@ -282,13 +280,13 @@
           <div class="flexWrapper horizontal">
             <h4>Save current config:</h4>
             <div class="flexWrapper saveButtons">
-              <button id="saveButton" disabled>Save</button>
-              <button id="saveConfigButton">Save as</button>
+              <button class="ConfigButton" id="saveButton" disabled>Save</button>
+              <button class="ConfigButton" id="saveConfigButton">Save as</button>
             </div>
           </div>
           <div class="flexWrapper horizontal">
             <h4>Load config file:</h4>
-            <button id="loadConfigButton">Open file</button>
+            <button class="ConfigButton" id="loadConfigButton">Open file</button>
           </div>
         </div>
 
@@ -305,7 +303,7 @@
             <div class="flexWrapper horizontal maincore">
               <div class="flexWrapper">
                 <!-- <h5>Farbe</h5> -->
-                <input id="oncolor" type="color" disabled>
+                <input id="oncolor" class="ColorPicker" type="color" disabled>
               </div>
               <div class="flexWrapper horizontal lightModeRow">
                 <!-- <h5>Light Mode:</h5> -->
@@ -339,7 +337,7 @@
 
               <div class="flexWrapper">
                 <!-- <h5>Farbe</h5> -->
-                <input id="offcolor" disabled type="color">
+                <input id="offcolor" class="ColorPicker" disabled type="color">
               </div>
 
               <div class="flexWrapper horizontal lightModeRow">

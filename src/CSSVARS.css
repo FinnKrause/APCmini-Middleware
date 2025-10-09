@@ -1,0 +1,35 @@
+body {
+
+    /* DESK PARAMETERS */
+    --margin-left: 0.7cm;
+    --button-height: 1cm;
+    --button-width: 2.1cm;
+    --round-button-diameter: 0.8cm;
+    --slider-thickness: 2.1cm;
+    --martix-gap: 3mm;
+    --padding: unset;
+
+    /* --console-background: #33333333;
+    --console-lighter-lighter-background: #77777780;
+    --console-lighter-background: #77777730; */
+
+    /* --console-background: #0a84ff33;
+    --console-lighter-lighter-background: #0a84ff80;
+    --console-lighter-background: #0a84ff30; */
+
+    --console-background: #0b324d33;
+    /* --console-lighter-lighter-background: #22292f80; */
+    --console-lighter-background: #15297930;
+
+
+    /* LIQUID GLASS PARAMETER */
+    --glass-primary: #0a84ff;
+    --glass-blur: 20px;
+    --glass-spread: 20px;
+
+
+    /* REST */
+    --fontColor: rgb(158, 158, 158);
+    --deactivated-font-color: rgb(61, 61, 61);
+    --fontColorBrighter: rgb(173, 173, 173);
+}
