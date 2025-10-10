@@ -105,10 +105,6 @@ ipcMain.handle("update-menu-state", async (event, menuStates) => {
 
 function buildMenuTemplate() {
   return Menu.buildFromTemplate([
-    {label: "Lol", submenu: [
-      // open, save and save as buttons
-
-    ]}, 
     {label: "File", submenu: [
       {label: "New Project File",type: "normal", click: () => {
         mainWindow.webContents.send("menu-click", "newProject");
