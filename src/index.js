@@ -1,19 +1,23 @@
 const { app, BrowserWindow, session, ipcMain, dialog, Menu, ipcRenderer } = require("electron");
 const path = require("node:path");
 const started = require("electron-squirrel-startup");
-const { readFile, writeFile } = require("fs");
+const { PDFDocument } = require('pdf-lib');
+const { readFile, writeFile, writeFileSync } = require("fs");
 
 if (started) {
   app.quit();
 }
 
 let mainWindow;
+let showNumberIndicators = true;
 let currentMenuState = {
   newProject: false,
   openFile: true,
   save: false,
   saveAs: true,
-  discardChanges: false
+  discardChanges: false,
+  toggleSettings: false,
+  printConsole: false,
 };
 
 const createWindow = () => {
@@ -31,9 +35,12 @@ const createWindow = () => {
 
   mainWindow = new BrowserWindow({
     width: 1360,
+    // width: 1920,
     height: 850,
+    fullscreenable: true,
     webPreferences: {
       nodeIntegration: false,
+      backgroundThrottling: false,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       // enableBlinkFeatures: "Midi",
@@ -102,6 +109,31 @@ ipcMain.handle("update-menu-state", async (event, menuStates) => {
   return { success: true };
 });
 
+ipcMain.handle('save-image-as-pdf', async (event, imgData) => {
+  const { filePath } = await dialog.showSaveDialog({
+    buttonLabel: 'Save as PDF',
+    defaultPath: 'export.pdf',
+    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+  });
+  if (!filePath) return;
+
+  const base64Data = imgData.replace(/^data:image\/png;base64,/, '');
+  const imgBuffer = Buffer.from(base64Data, 'base64');
+
+  const pdfDoc = await PDFDocument.create();
+  const img = await pdfDoc.embedPng(imgBuffer);
+  const page = pdfDoc.addPage([img.width, img.height]);
+  page.drawImage(img, {
+    x: 0,
+    y: 0,
+    width: img.width,
+    height: img.height,
+  });
+
+  const pdfBytes = await pdfDoc.save();
+  writeFileSync(filePath, pdfBytes);
+});
+
 
 function buildMenuTemplate() {
   return Menu.buildFromTemplate([
@@ -131,6 +163,26 @@ function buildMenuTemplate() {
         mainWindow.webContents.send("menu-click", "discardChanges");
       }},
     ]},
+    {label: "View", submenu: [
+      {label: "Toggle Settings", click: () => {
+        mainWindow.send("menu-click", "toggleSettings")
+      }, enabled: currentMenuState.toggleSettings},
+      {type: "separator"},
+      {label: "Toggle Fullscreen", accelerator: "F11", click: () => {
+        const isFullscreen = mainWindow.isFullScreen();
+        mainWindow.setFullScreen(!isFullscreen);
+      }},
+    ]},
+    {label: "PDF", submenu: [
+      {label: "Show button number indicators", type: "checkbox", checked:showNumberIndicators, click: (e) => {
+        showNumberIndicators = e.checked;
+      }},
+      // {type: "separator"},
+      {label: "Export Layout as PDF", enabled: currentMenuState.printConsole, click: () => {
+        mainWindow.send("menu-click", "printConsole", showNumberIndicators)
+      }}
+    ]
+    }
 
   ])
 }

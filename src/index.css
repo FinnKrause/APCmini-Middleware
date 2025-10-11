@@ -19,15 +19,21 @@ body {
 }
 
 
-
-#MTG-Logo {
+.ConsoleTopRightControls {
   position: absolute;
   height: 35px;
-  aspect-ratio: auto;
+  width: 100px;
   top: 25px;
   right: 25px;
   z-index: 2;
-  ;
+  display: flex;
+  justify-content: center;
+  place-items: center;
+}
+
+#MTG-Logo {
+  height: 35px;
+  aspect-ratio: auto;
   filter: invert();
 }
 
@@ -45,10 +51,6 @@ body {
 .active {
   /* fill: red; */
   background-color: red;
-}
-
-.lowerBrightness {
-  filter: brightness(0.4);
 }
 
 .pulsing {
@@ -118,6 +120,7 @@ body {
 
   overflow: hidden;
   backdrop-filter: blur(var(--glass-blur));
+  user-select: none;
 }
 
 .SettingsSection .header {
@@ -127,6 +130,7 @@ body {
   font-size: 15px;
   background-color: var(--console-lighter-background);
   width: 100%;
+  user-select: none;
 }
 
 .actionbuttons {
@@ -172,8 +176,8 @@ body {
   color: var(--fontColor);
 }
 
-.dropdownelement>option {
-  background-color: var(--console-lighter-background);
+.dropdownelement option {
+  background-color: #333;
   color: var(--fontColor)
 }
 
@@ -343,69 +347,7 @@ body {
   flex-direction: column;
 }
 
-#selectedCells {
-  display: flex;
-  justify-content: flex-start;
-  place-items: center;
-  flex-wrap: wrap;
-  max-width: 100%;
-  gap: 10px 0px;
-  margin: 0px 10px;
-  margin-top: 10px;
-}
 
-.selectedCell {
-  height: 20px;
-  padding: 5px 10px;
-  margin: 0px 2.5px;
-  border-radius: 2px;
-  width: fit-content;
-  background-color: var(--console-lighter-background);
-  color: var(--fontColor);
-  font-size: smaller;
-  text-align: center;
-}
-
-.ColorPicker {
-  width: 100px;
-  height: 40px;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  border-radius: 5px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ColorPicker:hover,
-.ConfigButton:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-}
-
-.ColorPicker:active,
-.ConfigButton:active {
-  transform: scale(0.98);
-}
-
-.ColorPicker::-webkit-color-swatch {
-  border: none;
-  border-radius: 5px;
-  padding: 0;
-  margin: 0;
-}
-
-.ColorPicker::-webkit-color-swatch-wrapper {
-  border: none;
-  border-radius: 5px;
-  padding: 0;
-  margin: 0;
-}
-
-.ColorPicker::-moz-color-swatch {
-  border: none;
-  border-radius: 5px;
+.lowerBrightness {
+  filter: brightness(var(--lower-brightness-darkening-effect-percent))
 }

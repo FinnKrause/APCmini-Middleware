@@ -7,8 +7,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
   writeFile: (filePath, data) => ipcRenderer.invoke("write-file", filePath, data),
 
   updateMenuState: (menuStates) => ipcRenderer.invoke("update-menu-state", menuStates),
+  saveImageAsPDF: (imgData) => ipcRenderer.invoke('save-image-as-pdf', imgData),
 });
 
 contextBridge.exposeInMainWorld("toFrontEnd", {
-  onMenuClick: (callback) => ipcRenderer.on("menu-click", (event, data) => callback(data)),
+  onMenuClick: (callback) => ipcRenderer.on("menu-click", (event, data, params) => callback(data, params)),
 });

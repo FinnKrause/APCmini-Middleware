@@ -55,3 +55,29 @@ export function MapToArray(map) {
   }
   return val;
 }
+
+export function isWhiteTextReadable(hex) {
+  hex = hex.replace(/^#/, '');
+  if (hex.length === 3) {
+    hex = hex.split('').map(x => x + x).join('');
+  }
+  if (!/^([0-9A-F]{6})$/i.test(hex)) return false;
+
+  const r = parseInt(hex.substr(0, 2), 16) / 255;
+  const g = parseInt(hex.substr(2, 2), 16) / 255;
+  const b = parseInt(hex.substr(4, 2), 16) / 255;
+
+  const toLinear = (c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+
+  const R = toLinear(r);
+  const G = toLinear(g);
+  const B = toLinear(b);
+
+  const L = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+  const Lwhite = 1;
+  
+  const contrast = (Lwhite + 0.05) / (L + 0.05);
+
+  return {decision: contrast >= 3, value: contrast};
+
+}

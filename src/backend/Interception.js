@@ -1,6 +1,6 @@
 import APCAPI from "./APCAPI.js";
 import {Colors, LModes, FaderIndexes, defaultOffLook} from "./constants.js"
-import {compareMaps, compareSets, MapToArray} from "../utils/usefulFunctions.js"
+import {compareMaps, compareSets, isWhiteTextReadable} from "../utils/usefulFunctions.js"
 import { getMIDIOutput, getMIDIInput, onNoteOn, getOldDataScheme, onFaderChange } from "../utils/midiwebapi.js";
 // const APCAPI = require("./APCAPI.js");
 // const { getMIDIOutput, getMIDIInput, onNoteOn, sendNote, getOldDataScheme, onFaderChange } = require("../utils/midiwebapi.js");
@@ -36,7 +36,6 @@ class Interception {
       if (velocity == 127) this.#setCurrentlyPressedNote(note)
       else if (velocity === 0) this.#deleteCurrentlyPressedNote(note)
 
-      console.log(note, velocity)
       if (msg[0] !== 176) return;
       if (note <= FaderIndexes.end && note >= FaderIndexes.start) this.APCmini.setWebUIFader(note, velocity)
     })
@@ -78,12 +77,26 @@ class Interception {
     this.toJoker.close();
   }
 
-  reinitializeLabels() { 
+  reinizialzeLabelsFor(ids, showNumberIndicators = true) {
+    for (const id of ids) {
+      console.log(ids, id)
+      this.#updateLabelFor(id, showNumberIndicators)
+    }
+  }
+
+  reinitializeLabels(showNumberIndicators = true) { 
     if (this.APCmini) {
+      this.APCmini.forEach(i => this.#updateLabelFor(i, showNumberIndicators))
+    }
+  }
+
+  simulateOffStateForPDF() {
+    if (this.APCmini) {
+      this.APCmini.forEach(i => this.APCmini.setButtonLook(i, "off"))
+    }
+    return () => {
       this.APCmini.forEach(i => {
-        const DOMElement = document.querySelector("#Button" + i)
-        //Wenn Zahl gewünscht, sofern kein anderer Text, dann hier ein i nach ??
-        DOMElement.textContent = this.defaultLooksMap.get(i)?.label??""
+        this.APCmini.setButtonLook(i, this.state[i]??"off")
       })
     }
   }
@@ -99,12 +112,28 @@ class Interception {
     if (this.APCmini) {
       this.APCmini.updateLook(newLooksMap)
       this.APCmini.forEach(i => {
-        const DOMElement = document.querySelector("#Button" + i)
-        DOMElement.textContent = this.defaultLooksMap.get(i)?.label??""
-
+        this.#updateLabelFor(i)
         this.APCmini.setButtonLook(i, this.state[i]??"off")
       })
     }
+  }
+
+  #updateLabelFor(nnote, showNumberIndicators = false) {
+      const DOMElement = document.querySelector("#Button" + nnote)
+      DOMElement.textContent = this.defaultLooksMap.get(nnote)?.label??(showNumberIndicators?nnote:"")
+
+      const offcolor = this.defaultLooksMap.get(nnote)
+      if (offcolor == undefined) return;
+
+      const result = isWhiteTextReadable(offcolor.off?.color?.hex)
+
+      if (offcolor!=undefined && !result.decision) {
+        DOMElement.style.color = "black"
+      }
+      else {
+        DOMElement.style.color = "var(--font-color)"
+      }
+
   }
 
   updateLook(nnote, newlook) {
@@ -153,7 +182,7 @@ class Interception {
   lockDesk() {
     if (!this.APCmini) return;
     this.deviceLocked = true;
-    this.APCmini.displayTextAnimation("LOCKED", 200, true, undefined, undefined, 8, (idx, on) => {
+    this.APCmini.displayTextAnimation("LOCKED", 300, true, undefined, undefined, 8, (idx, on) => {
       this.APCmini.changeButton(idx, on?Colors.red:Colors.blue, on?LModes.Brightness100:LModes.Brightness100)
     })
   }

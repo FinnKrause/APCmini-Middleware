@@ -8,6 +8,7 @@
     align-items: flex-start;
 
     border-radius: 10px;
+    background-color: var(--console-lighter-background);
     /* background-color: var(--console-background);
     backdrop-filter: var(--background-filter);
     border: 2px solid black; */
@@ -15,10 +16,13 @@
 
 #PultSVG>* {
     font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    font-size: 8px;
+    font-size: var(--console-button-font-size);
+    color: var(--fontColor);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
+    user-select: none;
 }
+
+#Pult {}
 
 #PultTop {
     display: flex;
@@ -165,4 +169,73 @@
     -ms-user-select: none;
     caret-color: transparent;
     /* no text cursor */
+}
+
+
+
+#selectedCells {
+    display: flex;
+    justify-content: flex-start;
+    place-items: center;
+    flex-wrap: wrap;
+    max-width: 100%;
+    gap: 10px 0px;
+    margin: 0px 10px;
+    margin-top: 10px;
+}
+
+.selectedCell {
+    height: 20px;
+    padding: 5px 10px;
+    margin: 0px 2.5px;
+    border-radius: 2px;
+    width: fit-content;
+    background-color: var(--console-lighter-background);
+    color: var(--fontColor);
+    font-size: smaller;
+    text-align: center;
+}
+
+.ColorPicker {
+    width: 60px;
+    height: 24px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    border-radius: 5px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ColorPicker:hover,
+.ConfigButton:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+.ColorPicker:active,
+.ConfigButton:active {
+    transform: scale(0.98);
+}
+
+.ColorPicker::-webkit-color-swatch {
+    border: none;
+    border-radius: 5px;
+    padding: 0;
+    margin: 0;
+}
+
+.ColorPicker::-webkit-color-swatch-wrapper {
+    border: none;
+    border-radius: 5px;
+    padding: 0;
+    margin: 0;
+}
+
+.ColorPicker::-moz-color-swatch {
+    border: none;
+    border-radius: 5px;
 }

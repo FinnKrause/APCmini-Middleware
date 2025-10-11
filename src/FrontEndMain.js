@@ -2,6 +2,7 @@
   import { findClosestColor, getColorFromHex } from "./utils/colorMagic.js"
   import { defaultOffLook, defaultOnLook } from "./backend/constants.js";
   import Interception from "./backend/Interception.js"
+import { exportSectionAsPDF } from "./utils/saveToPDF.js";
 
   const interception = new Interception(new Map(), UIUpdateLockStatus)
   let selectedItems = new Set()
@@ -12,13 +13,15 @@
   const lockClosed = document.getElementById("lock-closed");
 
   // Menu Clicks
-  window.toFrontEnd.onMenuClick((data) => {
+  window.toFrontEnd.onMenuClick((data, params) => {
     switch (data) {
       case "newProject": NewEmptyProjectButtonClick(); break;
       case "openFile": loadConfigButtonClick(); break;
       case "save": saveButtonClick(); break;
       case "saveAs": saveAsButtonClick(); break;
       case "discardChanges": discardChangesButtonClick(); break;
+      case "toggleSettings": toggleSettings(); break;
+      case "printConsole": printConsole(params); break;
       default: break;
     }
   })
@@ -30,18 +33,7 @@
     const selected4 = document.getElementById('dropdown4');
 
 
-    interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => {
-      document.getElementById("midiButtons").removeChild(document.getElementById("connectButton"))
-      document.getElementById("midiButtons").removeChild(document.getElementById("reloadButton"))
-      selected1.disabled = true;
-      selected2.disabled = true;
-      selected3.disabled = true;
-      selected4.disabled = true;
-      interception.intersept(msg => {
-
-      })
-      UIUpdateLockStatus();
-    })
+    interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => interception.intersept())
 
   }
 
@@ -143,9 +135,9 @@
     document.getElementById("ButtonLabelInput").disabled = true
     document.getElementById("OverwriteLabelCheckbox").disabled = true
 
-    on.value = "#000000ff"
+    on.value = "#000000"
     on.disabled = true
-    off.value = "#000000ff"
+    off.value = "#000000"
     off.disabled = true
     document.getElementById("ButtonLabelInput").value = ""
     document.getElementById("OverwriteLabelCheckbox").checked = false
@@ -279,8 +271,7 @@
         });
     }
 
-    interception.reinitializeLabels()
-
+    interception.reinizialzeLabelsFor([...selectedItems.values()])
     clearAllSelected();
 
     // document.getElementById("NewEmptyProjectButton").disabled = true
@@ -392,24 +383,104 @@
     updateAllButtonStates();
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    fillMIDIMenu()
+  async function toggleSettings() {
+    const SettingsElement = document.getElementById("Settings")
+    SettingsElement.style.display = SettingsElement.style.display==="none"?"block":"none";
+  }
+
+  function PresettingsconnectButtonClick() {
+    const selected1 = document.getElementById('dropdown1');
+    const selected2 = document.getElementById('dropdown2');
+    const selected3 = document.getElementById('dropdown3');
+    const selected4 = document.getElementById('dropdown4');
+    if (!(selected1.value != "Bitte wählen" && selected2.value != "Bitte wählen" && selected3.value != "Bitte wählen" && selected4.value != "Bitte wählen" && (new Set([selected1.value, selected2.value, selected3.value, selected4.value]).size >= 3))) {
+      // Wenn Duplikate oder nicht ausgewählt
+      alert("The current MIDI Selection is not valid. Check that the program 'loopMIDI' is running and that the MIDI Device is connected!")
+      return;
+    }
+    connectToMIDIDevices();
+    UIUpdateLockStatus();
+    document.getElementById("bottomPart").removeChild(document.getElementById("PrestartSettings"))
+
+    document.getElementById("Pult").style.display = "block";
+    document.getElementById("Settings").style.display = "block";
+    window.electronAPI.updateMenuState({ toggleSettings: true, printConsole: true })
+
+  }
+
+  function connectButtonClick() {
+    const selected1 = document.getElementById('dropdown1');
+    const selected2 = document.getElementById('dropdown2');
+    const selected3 = document.getElementById('dropdown3');
+    const selected4 = document.getElementById('dropdown4');
+    if (!(selected1.value != "Bitte wählen" && selected2.value != "Bitte wählen" && selected3.value != "Bitte wählen" && selected4.value != "Bitte wählen" && (new Set([selected1.value, selected2.value, selected3.value, selected4.value]).size >= 3))) {
+      // Wenn Duplikate oder nicht ausgewählt
+      alert("The current MIDI Selection is not valid. Check that the program 'loopMIDI' is running and that the MIDI Device is connected!")
+      return;
+    }
+    connectToMIDIDevices();
+    UIUpdateLockStatus();
+    document.getElementById("Settings").removeChild(document.getElementById("MidiSettings"))
+        document.getElementById("Pult").style.display = "block";
+    document.getElementById("Settings").style.display = "block";
+  }
+
+  async function DemoButtonClick() {
+    document.getElementById("bottomPart").removeChild(document.getElementById("PrestartSettings"))
+    document.getElementById("Pult").style.display = "block";
+    document.getElementById("Settings").style.display = "block";
+    document.getElementById("MidiSettings").style.display = "block";
+
+    document.getElementById("reloadButton").onclick = fillMIDIMenu
 
     const connectButton = document.getElementById("connectButton")
-    const reloadButton = document.getElementById("reloadButton").onclick = fillMIDIMenu
-    connectButton.onclick = () => {
-      const selected1 = document.getElementById('dropdown1');
-      const selected2 = document.getElementById('dropdown2');
-      const selected3 = document.getElementById('dropdown3');
-      const selected4 = document.getElementById('dropdown4');
-      if (!(selected1.value != "Bitte wählen" && selected2.value != "Bitte wählen" && selected3.value != "Bitte wählen" && selected4.value != "Bitte wählen" && (new Set([selected1.value, selected2.value, selected3.value, selected4.value]).size >= 3))) {
-        // Wenn Duplikate oder nicht ausgewählt
-        alert("The current MIDI Selection is not valid. Check that the program 'loopMIDI' is running and that the MIDI Device is connected!")
-        return;
-      }
+    connectButton.onclick = connectButtonClick
+    fillMIDIMenu();
+    window.electronAPI.updateMenuState({ toggleSettings: true, printConsole: true })
+  }
 
-      connectToMIDIDevices();
-    }
+  function printConsole(showNumbers) {
+      const body = document.querySelector("body")
+
+      const glass_primary = body.style.getPropertyValue("--glass-primary");
+      const console_background = body.style.getPropertyValue("--console-background");
+      const console_lighter_background = body.style.getPropertyValue("--console-lighter-background");
+      const lowerBrightness = body.style.getPropertyValue("--lower-brightness-darkening-effect-percent");
+      const console_button_font_size = body.style.getPropertyValue("--console-button-font-size");
+      
+      body.style.setProperty("--glass-primary", "#FFFFFF");
+      body.style.setProperty("--console-background", "#ffffffff");
+      body.style.setProperty("--console-lighter-background", "#ffffffff");
+      body.style.setProperty("--lower-brightness-darkening-effect-percent", "100%");
+      body.style.setProperty("--console-button-font-size", "10px");
+      document.getElementById("Pult").style.padding = "10px";
+      document.getElementById("PultSVG").style.border = "3px solid black";
+      const changeBackFunction = interception.simulateOffStateForPDF()
+      interception.reinitializeLabels(showNumbers)
+
+      exportSectionAsPDF("#Pult")
+
+      body.style.setProperty("--glass-primary", glass_primary);
+      body.style.setProperty("--console-background", console_background);
+      body.style.setProperty("--console-lighter-background", console_lighter_background);
+      body.style.setProperty("--lower-brightness-darkening-effect-percent", lowerBrightness);
+      body.style.setProperty("--console-button-font-size", console_button_font_size);
+      changeBackFunction();
+      document.getElementById("PultSVG").style.border = "none";
+      document.getElementById("Pult").style.padding = "0px";
+      interception.reinitializeLabels(true)
+  }
+
+
+  document.addEventListener("DOMContentLoaded", () => {
+    fillMIDIMenu()
+    document.getElementById("reloadButton").onclick = fillMIDIMenu
+
+    const connectButton = document.getElementById("connectButton")
+    connectButton.onclick = PresettingsconnectButtonClick
+
+    const DemoButton = document.getElementById("DemoButton")
+    DemoButton.onclick = DemoButtonClick
 
     const saveButton = document.getElementById("saveButton")
     saveButton.onclick = saveButtonClick

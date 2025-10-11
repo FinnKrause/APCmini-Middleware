@@ -17,9 +17,12 @@ body {
     --console-lighter-lighter-background: #0a84ff80;
     --console-lighter-background: #0a84ff30; */
 
-    --console-background: #0b324d33;
+    --console-background: rgba(20, 20, 30, 0.7);
+
     /* --console-lighter-lighter-background: #22292f80; */
-    --console-lighter-background: #15297930;
+    --console-lighter-background: #3c497a30;
+    --lower-brightness-darkening-effect-percent: 70%;
+    --console-button-font-size: 8px;
 
 
     /* LIQUID GLASS PARAMETER */

@@ -11,19 +11,18 @@
   <link rel="stylesheet" href="index.css" />
 </head>
 
+<script src="../node_modules/html2canvas/dist/html2canvas.min.js"></script>
 <script type="module" src="./FrontEndMain.js" defer></script>
-
 
 <!--  
  TODO: Making the lock-status configurable
- TODO: Changing the starting procedure
  TODO: Redundant settings that are saved somewhere. Auto-loading of last used files 
  -->
 
 <body>
-  <div class="bottomPart">
+  <div id="bottomPart" class="bottomPart">
 
-    <div id="Pult">
+    <div id="Pult" style="display: none;">
       <svg id="lock-closed" class="Lock" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
         fill="none" viewBox="0 0 24 24">
         <path stroke="darkred" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -36,7 +35,9 @@
           d="M10 14v3m4-6V7a3 3 0 1 1 6 0v4M5 11h10a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1Z" />
       </svg>
 
-      <img id="MTG-Logo" src="./assets/MTG.webp" alt="MTG-Logo">
+      <div class="ConsoleTopRightControls">
+        <img id="MTG-Logo" src="./assets/MTG.webp" alt="MTG-Logo">
+      </div>
 
       <div id="PultSVG" class="liquid-glass">
 
@@ -228,7 +229,48 @@
 
       </div>
     </div>
-    <div id="Settings" class="">
+
+    <div class="SettingsSection" id="PrestartSettings">
+      <h2 class="header">MIDI-Settings</h2>
+      <div class="flexWrapper midirows">
+        <div class="dropdown">
+          <h4>MIDI Gerät Input:</h4>
+          <select class="dropdownelement" id="dropdown1">
+            <option value="Bitte wählen"></option>
+          </select>
+        </div>
+        <div class="dropdown">
+          <h4>MIDI Gerät Output:</h4>
+          <select class="dropdownelement" id="dropdown2">
+            <option value="Bitte wählen"></option>
+          </select>
+        </div>
+      </div>
+      <div class="flexWrapper midirows">
+        <div class="dropdown">
+          <h4>Joker Input</h4>
+          <select class="dropdownelement" id="dropdown3">
+            <option value="Bitte wählen"></option>
+
+          </select>
+        </div>
+        <div class="dropdown">
+          <h4>Joker Output</h4>
+          <select class="dropdownelement" id="dropdown4">
+            <option value="Bitte wählen"></option>
+          </select>
+        </div>
+      </div>
+
+      <div id="midiButtons" class="flexWrapper midiButtons">
+        <button class="ConfigButton" id="reloadButton">Reload</button>
+        <button class="ConfigButton" id="connectButton">Connect</button>
+        <button class="ConfigButton" id="DemoButton">Demo (BETA)</button>
+      </div>
+    </div>
+
+    <div id="Settings" style="display: none;">
+
       <div class="SettingsSection">
         <h2 class="header">Actions</h2>
         <div class="flexWrapper actionbuttons">
@@ -236,7 +278,8 @@
           <button class="ConfigButton" id="DiscardChangesButton" disabled>Discard all changes</button>
         </div>
       </div>
-      <div class="SettingsSection" id="MidiSettings">
+
+      <div class="SettingsSection" id="MidiSettings" style="display: none;">
         <h2 class="header">MIDI-Settings</h2>
         <div class="flexWrapper midirows">
           <div class="dropdown">
@@ -273,6 +316,7 @@
           <button class="ConfigButton" id="connectButton">Connect</button>
         </div>
       </div>
+
       <div class="SettingsSection LookImportExportSettings">
         <h2 class="header">Configs</h2>
 
@@ -292,6 +336,7 @@
 
         <h5 id="LoadedConfigName"></h5>
       </div>
+
       <div class="SettingsSection EditLook">
         <h2 class="header">Edit config</h2>
         <div id="selectedCells"></div>
@@ -378,6 +423,14 @@
 
 
       </div>
+
+      <div class="SettingsSection">
+        <h2 class="header">Lock config</h2>
+        <div class="flexWrapper actionbuttons">
+          <h5 style="padding: 20px; color: rgb(95, 0, 0)">Coming soon</h5>
+        </div>
+      </div>
+
     </div>
   </div>
 </body>
