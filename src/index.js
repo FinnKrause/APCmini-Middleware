@@ -52,7 +52,7 @@ const createWindow = () => {
   
   // Open the DevTools.
   Menu.setApplicationMenu(buildMenuTemplate());
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 app.whenReady().then(() => {

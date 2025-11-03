@@ -34,7 +34,6 @@ import { exportSectionAsPDF } from "./utils/saveToPDF.js";
 
 
     interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => interception.intersept(msg => {
-      console.log(msg)
     }))
 
   }
