@@ -268,7 +268,7 @@ body {
   margin: 0px 10px 0px 10px;
 }
 
-#ButtonLabelInput {
+.ButtonLabelInput {
   padding: 10px;
   color: var(--fontColorBrighter);
   outline-style: none;
@@ -290,12 +290,16 @@ body {
   text-align: right;
 }
 
-#UpdateEditButton,
-#UpdateEditButton:focus {
+.UpdateButton {
   padding: 10px;
   margin: 10px;
+  flex: 1;
   color: var(--fontColor);
   background-color: var(--console-lighter-background);
+  display: block;
+}
+.UpdateButton:focus {
+
 }
 
 .maincore {
@@ -313,7 +317,10 @@ body {
 }
 
 
-
+#AnimationSpeedInput {
+  max-width: 50px;
+  margin-left: 5px;
+}
 
 
 
@@ -352,4 +359,28 @@ body {
 
 .lowerBrightness {
   filter: brightness(var(--lower-brightness-darkening-effect-percent))
+}
+
+
+
+/* Lock Section */
+
+.LabelPassword {
+  font-size: 10px;
+  margin-left: 10px;
+
+}
+
+.selectedCellsContainerPAssword {
+  margin-top: 0;
+}
+
+.PasswordSection {
+  display: flex;
+  align-items: center;
+  background-color: var(--console-lighter-background);
+  margin-left: 10px;
+  margin-bottom: 10px;
+ 
+  min-height: 22px;
 }

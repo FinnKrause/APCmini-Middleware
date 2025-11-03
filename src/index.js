@@ -1,7 +1,15 @@
-const { app, BrowserWindow, session, ipcMain, dialog, Menu, ipcRenderer } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  session,
+  ipcMain,
+  dialog,
+  Menu,
+  ipcRenderer,
+} = require("electron");
 const path = require("node:path");
 const started = require("electron-squirrel-startup");
-const { PDFDocument } = require('pdf-lib');
+const { PDFDocument } = require("pdf-lib");
 const { readFile, writeFile, writeFileSync } = require("fs");
 
 if (started) {
@@ -46,10 +54,10 @@ const createWindow = () => {
       // enableBlinkFeatures: "Midi",
     },
   });
-  
+
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, "index.html"));
-  
+
   // Open the DevTools.
   Menu.setApplicationMenu(buildMenuTemplate());
   // mainWindow.webContents.openDevTools();
@@ -109,16 +117,16 @@ ipcMain.handle("update-menu-state", async (event, menuStates) => {
   return { success: true };
 });
 
-ipcMain.handle('save-image-as-pdf', async (event, imgData) => {
+ipcMain.handle("save-image-as-pdf", async (event, imgData) => {
   const { filePath } = await dialog.showSaveDialog({
-    buttonLabel: 'Save as PDF',
-    defaultPath: 'export.pdf',
-    filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+    buttonLabel: "Save as PDF",
+    defaultPath: "export.pdf",
+    filters: [{ name: "PDF Files", extensions: ["pdf"] }],
   });
   if (!filePath) return;
 
-  const base64Data = imgData.replace(/^data:image\/png;base64,/, '');
-  const imgBuffer = Buffer.from(base64Data, 'base64');
+  const base64Data = imgData.replace(/^data:image\/png;base64,/, "");
+  const imgBuffer = Buffer.from(base64Data, "base64");
 
   const pdfDoc = await PDFDocument.create();
   const img = await pdfDoc.embedPng(imgBuffer);
@@ -134,57 +142,115 @@ ipcMain.handle('save-image-as-pdf', async (event, imgData) => {
   writeFileSync(filePath, pdfBytes);
 });
 
-
 function buildMenuTemplate() {
   return Menu.buildFromTemplate([
-    {label: "File", submenu: [
-      {label: "New Project File",type: "normal", click: () => {
-        mainWindow.webContents.send("menu-click", "newProject");
-      }, enabled: currentMenuState.newProject, accelerator: 'CmdOrCtrl+N',},
+    {
+      label: "File",
+      submenu: [
+        {
+          label: "New Project File",
+          type: "normal",
+          click: () => {
+            mainWindow.webContents.send("menu-click", "newProject");
+          },
+          enabled: currentMenuState.newProject,
+          accelerator: "CmdOrCtrl+N",
+        },
 
-      {type: "separator"},
+        { type: "separator" },
 
-      {label: "Open File", type: "normal", enabled: currentMenuState.openFile, accelerator: "CmdOrCtrl+O", click: () => {
-        mainWindow.webContents.send("menu-click", "openFile");
-      }},
+        {
+          label: "Open File",
+          type: "normal",
+          enabled: currentMenuState.openFile,
+          accelerator: "CmdOrCtrl+O",
+          click: () => {
+            mainWindow.webContents.send("menu-click", "openFile");
+          },
+        },
 
-      {type: "separator"},
+        { type: "separator" },
 
-      {label: "Save", type: "normal", enabled: currentMenuState.save, accelerator: "CmdOrCtrl+S", click: () => {
-        mainWindow.webContents.send("menu-click", "save");
-      }},
-      {label: "Save As", type: "normal", enabled: currentMenuState.saveAs, accelerator: "CmdOrCtrl+Shift+S", click: () => {
-        mainWindow.webContents.send("menu-click", "saveAs");
-      }},
+        {
+          label: "Save",
+          type: "normal",
+          enabled: currentMenuState.save,
+          accelerator: "CmdOrCtrl+S",
+          click: () => {
+            mainWindow.webContents.send("menu-click", "save");
+          },
+        },
+        {
+          label: "Save As",
+          type: "normal",
+          enabled: currentMenuState.saveAs,
+          accelerator: "CmdOrCtrl+Shift+S",
+          click: () => {
+            mainWindow.webContents.send("menu-click", "saveAs");
+          },
+        },
 
-      {type: "separator"},
+        { type: "separator" },
 
-      {label: "Discard unsaved Changes", type: "normal", enabled: currentMenuState.discardChanges, click: () => {
-        mainWindow.webContents.send("menu-click", "discardChanges");
-      }},
-    ]},
-    {label: "View", submenu: [
-      {label: "Toggle Settings", click: () => {
-        mainWindow.send("menu-click", "toggleSettings")
-      }, enabled: currentMenuState.toggleSettings},
-      {type: "separator"},
-      {label: "Toggle Fullscreen", accelerator: "F11", click: () => {
-        const isFullscreen = mainWindow.isFullScreen();
-        mainWindow.setFullScreen(!isFullscreen);
-      }},
-    ]},
-    {label: "PDF", submenu: [
-      {label: "Show button number indicators", type: "checkbox", checked:showNumberIndicators, click: (e) => {
-        showNumberIndicators = e.checked;
-      }},
-      // {type: "separator"},
-      {label: "Export Layout as PDF", enabled: currentMenuState.printConsole, click: () => {
-        mainWindow.send("menu-click", "printConsole", showNumberIndicators)
-      }}
-    ]
-    }
-
-  ])
+        {
+          label: "Discard unsaved Changes",
+          type: "normal",
+          enabled: currentMenuState.discardChanges,
+          click: () => {
+            mainWindow.webContents.send("menu-click", "discardChanges");
+          },
+        },
+      ],
+    },
+    {
+      label: "View",
+      submenu: [
+        {
+          label: "Toggle Settings",
+          click: () => {
+            mainWindow.send("menu-click", "toggleSettings");
+          },
+          enabled: currentMenuState.toggleSettings,
+        },
+        {
+          label: "Toggle Lock-State Edit Section",
+          click: () => {
+            mainWindow.send("menu-click", "toggleEditLockStatusSection");
+          },
+        },
+        { type: "separator" },
+        {
+          label: "Toggle Fullscreen",
+          accelerator: "F11",
+          click: () => {
+            const isFullscreen = mainWindow.isFullScreen();
+            mainWindow.setFullScreen(!isFullscreen);
+          },
+        },
+      ],
+    },
+    {
+      label: "PDF",
+      submenu: [
+        {
+          label: "Show button number indicators",
+          type: "checkbox",
+          checked: showNumberIndicators,
+          click: (e) => {
+            showNumberIndicators = e.checked;
+          },
+        },
+        // {type: "separator"},
+        {
+          label: "Export Layout as PDF",
+          enabled: currentMenuState.printConsole,
+          click: () => {
+            mainWindow.send("menu-click", "printConsole", showNumberIndicators);
+          },
+        },
+      ],
+    },
+  ]);
 }
 
 function updateMenuState(newState) {

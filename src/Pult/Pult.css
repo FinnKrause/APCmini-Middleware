@@ -173,7 +173,7 @@
 
 
 
-#selectedCells {
+.selectedCellsContainer {
     display: flex;
     justify-content: flex-start;
     place-items: center;
@@ -184,7 +184,7 @@
     margin-top: 10px;
 }
 
-.selectedCell {
+.selectedCells {
     height: 20px;
     padding: 5px 10px;
     margin: 0px 2.5px;

@@ -91,8 +91,8 @@ const Colors = {
   lime: { hex: "#64FF09", velocity: 75 },
   grassGreen: { hex: "#108B00", velocity: 76 },
   neonLime: { hex: "#108F87", velocity: 77 },
-  seaGreen: { hex: "#008F8F", velocity: 78 }
-}
+  seaGreen: { hex: "#008F8F", velocity: 78 },
+};
 
 const LModes = {
   Brightness10: 0,
@@ -119,9 +119,15 @@ const TrackButtonIndexes = { start: 100, end: 108 };
 const FaderIndexes = { start: 48, end: 56 };
 const BottmonRightButtonIdex = 122;
 
-const defaultOffLook = {color: Colors.black, lmode: LModes.Brightness100}
-const defaultOnLook = {color: Colors.red, lmode: LModes.Blinking1t2}
-const defaultLooks = {"off": defaultOffLook, "on": defaultOnLook}
+const defaultOffLook = { color: Colors.black, lmode: LModes.Brightness100 };
+const defaultOnLook = { color: Colors.red, lmode: LModes.Blinking1t2 };
+const defaultLooks = { off: defaultOffLook, on: defaultOnLook };
+const defaultLockAnimation = {
+  on: { color: Colors.blue, lmode: LModes.Brightness100 },
+  off: { color: Colors.red, lmode: LModes.Brightness100 },
+  text: "LOCKED",
+  speed: 300,
+};
 
 export {
   Colors,
@@ -133,7 +139,8 @@ export {
   TrackButtonIndexes,
   defaultOffLook,
   defaultOnLook,
-  defaultLooks
+  defaultLooks,
+  defaultLockAnimation,
 };
 
 // module.exports = {

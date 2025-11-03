@@ -16,6 +16,8 @@
 
 <!--  
  TODO: Making the lock-status configurable
+      TODO: Make the password actually change something - listen to the password - better password changing technique, as when started up, no old password is being imported
+      TODO: Make the edit configs switch around when toggled, better for the user
  TODO: Redundant settings that are saved somewhere. Auto-loading of last used files 
  -->
 
@@ -338,9 +340,9 @@
         <h5 id="LoadedConfigName"></h5>
       </div>
 
-      <div class="SettingsSection EditLook">
+      <div class="SettingsSection EditLook" id="EditLookSection">
         <h2 class="header">Edit config</h2>
-        <div id="selectedCells"></div>
+        <div class="selectedCellsContainer"></div>
 
 
         <div class="flexWrapper editStateFlex">
@@ -414,16 +416,102 @@
 
         </div>
         <div class="ButtonLabelSection">
-          <input id="ButtonLabelInput" placeholder="Button Label" type="text" disabled>
+          <input id="ButtonLabelInput" class="ButtonLabelInput" placeholder="Button Label" type="text" disabled>
           <div class="LabelOverwriteWarningSection">
             <h5 class="LabelOverwriteWarning">Overwrite existing<br>labels for all selected</h5>
             <input type="checkbox" id="OverwriteLabelCheckbox" disabled>
           </div>
         </div>
-        <button id="UpdateEditButton" disabled>Update</button>
+        <button id="UpdateEditButton" class="UpdateButton" disabled>Update</button>
 
 
       </div>
+
+      <!-- Edit Lock Status For Config -->
+      <div class="SettingsSection EditLockedStatus" id="EditLockedSection" style="display: none;">
+        <h2 class="header">Edit lock status</h2>
+        <div class="flexWrapper editStateFlex">
+          <div class="looksWrapper editStateFlexChild">
+            <h4 class="onlook header">FOREGROUND</h4>
+            <div class="flexWrapper horizontal maincore">
+              <div class="flexWrapper">
+                <input id="foregroundcolor" class="ColorPicker" type="color" >
+              </div>
+              <div class="flexWrapper horizontal lightModeRow">
+                <select class="dropdownelement" id="foregroundMode" >
+                  <option value="0">Brightness10</option>
+                  <option value="1">Brightness25</option>
+                  <option value="2">Brightness50</option>
+                  <option value="3">Brightness65</option>
+                  <option value="4">Brightness75</option>
+                  <option value="5">Brightness90</option>
+                  <option value="6">Brightness100</option>
+                  <option value="7">Pulsing1t16</option>
+                  <option value="8">Pulsing1t8</option>
+                  <option value="9">Pulsing1t4</option>
+                  <option value="10">Pulsing1t2</option>
+                  <option value="11">Blinking1t24</option>
+                  <option value="12">Blinking1t16</option>
+                  <option value="13">Blinking1t8</option>
+                  <option value="14">Blinking1t4</option>
+                  <option value="15">Blinking1t2</option>
+                </select>
+
+              </div>
+            </div>
+
+          </div>
+
+          <div class="looksWrapper editStateFlex editStateFlexChild">
+            <h4 class="offlook header">BACKGROUND</h4>
+            <div class="flexWrapper horizontal maincore">
+
+              <div class="flexWrapper">
+                <input id="backgroundcolor" class="ColorPicker" type="color">
+              </div>
+
+              <div class="flexWrapper horizontal lightModeRow">
+                <select class="dropdownelement" id="backgroundMode">
+                  <option value="0">Brightness10</option>
+                  <option value="1">Brightness25</option>
+                  <option value="2">Brightness50</option>
+                  <option value="3">Brightness65</option>
+                  <option value="4">Brightness75</option>
+                  <option value="5">Brightness90</option>
+                  <option value="6">Brightness100</option>
+                  <option value="7">Pulsing1t16</option>
+                  <option value="8">Pulsing1t8</option>
+                  <option value="9">Pulsing1t4</option>
+                  <option value="10">Pulsing1t2</option>
+                  <option value="11">Blinking1t24</option>
+                  <option value="12">Blinking1t16</option>
+                  <option value="13">Blinking1t8</option>
+                  <option value="14">Blinking1t4</option>
+                  <option value="15">Blinking1t2</option>
+                </select>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+        <div class="PasswordSection">
+          <h5 class="LabelPassword">Password</h5>
+          <div class="selectedCellsContainer selectedCellsContainerPAssword"></div>
+        </div>
+        <div class="ButtonLabelSection">
+          <input id="AnimationTextInput" class="ButtonLabelInput" placeholder="Text" type="text">
+          <div class="LabelOverwriteWarningSection">
+            <h5 class="LabelOverwriteWarning">Speed</h5>
+            <input type="number" class="ButtonLabelInput" id="AnimationSpeedInput" value="200">
+          </div>
+        </div>
+        <button id="UpdateLockStatusButton" class="UpdateButton">Update</button>
+
+
+      </div>
+      
 
       <!-- <div class="SettingsSection">
         <h2 class="header">Lock config</h2>
