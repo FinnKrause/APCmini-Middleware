@@ -33,7 +33,9 @@ import { exportSectionAsPDF } from "./utils/saveToPDF.js";
     const selected4 = document.getElementById('dropdown4');
 
 
-    interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => interception.intersept())
+    interception.connectToDevices(selected1.value, selected2.value, selected3.value, selected4.value).then(res => interception.intersept(msg => {
+      console.log(msg)
+    }))
 
   }
 

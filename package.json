@@ -1,8 +1,8 @@
 {
   "name": "electronversion",
-  "productName": "APCmini",
-  "version": "1.0.1",
-  "description": "Hi! I don't know what this is. The code is btw pratically shit. Don't touch it",
+  "productName": "APCmini Middleware",
+  "version": "1.6.1",
+  "description": "Custom MIDI-Middleware for the AKAI APC Mini",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",

@@ -32,9 +32,11 @@ body {
 }
 
 #MTG-Logo {
-  height: 35px;
+  height: 40px;
   aspect-ratio: auto;
-  filter: invert();
+  pointer-events: none;
+  user-select: none;
+  filter: invert() brightness(2);
 }
 
 .Lock {
