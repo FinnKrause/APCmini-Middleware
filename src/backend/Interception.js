@@ -7,6 +7,7 @@ import {
   defaultLockAnimation,
 } from "./constants.js";
 import {
+  ArrayToSet,
   compareMaps,
   compareSets,
   isWhiteTextReadable,
@@ -171,6 +172,7 @@ class Interception {
 
   setConfigFlagFor(flag, data) {
     this.defaultLooksMap.set(flag, data);
+    this.APCmini.updateLook(this.defaultLooksMap);
   }
 
   updateOriginalLooksMap() {
@@ -259,14 +261,26 @@ class Interception {
   #setCurrentlyPressedNote(nnote) {
     this.activeNotes.add(nnote);
 
-    // console.log(MapToArray(this.activeNotes).join(" "))
+    if (!this.deviceLocked) return;
 
-    if (compareSets(this.activeNotes, new Set().add(120).add(127).add(71))) {
-      this.lockDesk();
-    }
-
-    if (compareSets(this.activeNotes, new Set().add(63).add(56).add(7))) {
-      this.unlockDesk();
+    if (
+      this.defaultLooksMap.get(512) == undefined ||
+      this.defaultLooksMap.get(512).password.length == 0
+    ) {
+      if (
+        compareSets(this.activeNotes, new Set(defaultLockAnimation.password))
+      ) {
+        this.unlockDesk();
+      }
+    } else {
+      if (
+        compareSets(
+          this.activeNotes,
+          ArrayToSet(this.defaultLooksMap.get(512).password)
+        )
+      ) {
+        this.unlockDesk();
+      }
     }
   }
 

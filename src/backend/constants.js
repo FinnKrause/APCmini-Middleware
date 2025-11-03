@@ -127,6 +127,7 @@ const defaultLockAnimation = {
   off: { color: Colors.red, lmode: LModes.Brightness100 },
   text: "LOCKED",
   speed: 300,
+  password: [56, 63, 7],
 };
 
 export {

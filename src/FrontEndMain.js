@@ -7,7 +7,11 @@ import {
 } from "./backend/constants.js";
 import Interception from "./backend/Interception.js";
 import { exportSectionAsPDF } from "./utils/saveToPDF.js";
-import { MapToArray } from "./utils/usefulFunctions.js";
+import {
+  ArrayToSet,
+  compareSets,
+  MapToArray,
+} from "./utils/usefulFunctions.js";
 
 const interception = new Interception(new Map(), UIUpdateLockStatus);
 let selectedItems = new Set();
@@ -97,14 +101,14 @@ function fillMIDIMenu() {
     });
     if (result.includes("JokerIn")) {
       selected3.selectedIndex = result.indexOf("JokerIn");
-    } else if (result.includes("Joker In")) {
-      selected3.selectedIndex = result.indexOf("Joker In");
+    } else if (result.includes("IAC Driver JokerIn")) {
+      selected3.selectedIndex = result.indexOf("IAC Driver JokerIn");
     }
 
     if (result.includes("JokerOut")) {
       selected4.selectedIndex = result.indexOf("JokerOut");
-    } else if (result.includes("Joker Out")) {
-      selected4.selectedIndex = result.indexOf("Joker Out");
+    } else if (result.includes("IAC Driver JokerOut")) {
+      selected4.selectedIndex = result.indexOf("IAC Driver JokerOut");
     }
 
     if (result.includes("APC mini mk2")) {
@@ -342,19 +346,32 @@ function UpdateLockStatusButtonClicked() {
   const actualOffColor = getColorFromHex(backgroundcolor.value);
   const actualOnColor = getColorFromHex(foregroundcolor.value);
 
+  const passwordValue = () => {
+    const mapArr = MapToArray(selectedItems);
+    const previouslySetPassword =
+      interception.defaultLooksMap.get(512)?.password;
+    if (mapArr && mapArr.length > 0) return mapArr;
+    if (previouslySetPassword && previouslySetPassword.length > 0)
+      return previouslySetPassword;
+
+    return defaultLockAnimation.password;
+  };
+
+  //! Noch schauen, dass das passwort nur überschrieben wird, mit dem was gebraucht wird
   interception.setConfigFlagFor(512, {
     on: { color: actualOnColor, lmode: foregroundMode.selectedIndex },
     off: { color: actualOffColor, lmode: backgroundMode.selectedIndex },
     text: animationText,
     speed: animationSpeed,
-    password: [MapToArray(selectedItems)],
+    password: passwordValue(),
   });
 
   updateAllButtonStates();
-  alert("Lock Animation Updated!");
+  clearAllSelected();
   setTimeout(() => {
     toggleEditLockstatusSection();
   }, 500);
+  alert("Lock Animation Updated!");
 }
 
 function fillInitialLockStatus() {
@@ -367,7 +384,6 @@ function fillInitialLockStatus() {
   const foregroundMode = document.getElementById("foregroundMode");
 
   const requestedData = interception.defaultLooksMap.get(512);
-  console.log(requestedData);
 
   animationText.value = requestedData?.text ?? defaultLockAnimation.text;
   animationSpeed.value = requestedData?.speed ?? defaultLockAnimation.speed;
@@ -383,13 +399,13 @@ function fillInitialLockStatus() {
 
 lockOpen.addEventListener("click", () => {
   interception.lockDesk();
-  toggleSettings();
   UIUpdateLockStatus();
 });
 
 function UIUpdateLockStatus() {
   lockClosed.style.display = interception.isDeskLocked() ? "block" : "none";
   lockOpen.style.display = interception.isDeskLocked() ? "none" : "block";
+  toggleSettings();
 }
 
 async function NewEmptyProjectButtonClick() {
@@ -491,8 +507,14 @@ async function discardChangesButtonClick() {
 
 async function toggleSettings() {
   const SettingsElement = document.getElementById("Settings");
-  SettingsElement.style.display =
-    SettingsElement.style.display === "none" ? "block" : "none";
+
+  if (SettingsElement.style.display === "block") {
+    window.electronAPI.updateMenuState({ toggleLockSection: false });
+    SettingsElement.style.display = "none";
+  } else {
+    window.electronAPI.updateMenuState({ toggleLockSection: true });
+    SettingsElement.style.display = "block";
+  }
 }
 
 function PresettingsconnectButtonClick() {
@@ -532,6 +554,7 @@ function PresettingsconnectButtonClick() {
   window.electronAPI.updateMenuState({
     toggleSettings: true,
     printConsole: true,
+    toggleLockSection: true,
   });
 }
 
@@ -584,6 +607,7 @@ async function DemoButtonClick() {
   fillMIDIMenu();
   fillInitialLockStatus();
   window.electronAPI.updateMenuState({
+    toggleLockSection: true,
     toggleSettings: true,
     printConsole: true,
   });
@@ -640,8 +664,10 @@ function printConsole(showNumbers) {
 
 function toggleEditLockstatusSection() {
   const EditLockedSection = document.getElementById("EditLockedSection");
+  const EditLookSection = document.getElementById("EditLookSection");
   const cond = EditLockedSection.style.display === "none";
   EditLockedSection.style.display = cond ? "flex" : "none";
+  EditLookSection.style.display = cond ? "none" : "flex";
 
   cond && fillInitialLockStatus();
 }

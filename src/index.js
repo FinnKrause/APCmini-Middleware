@@ -25,6 +25,7 @@ let currentMenuState = {
   saveAs: true,
   discardChanges: false,
   toggleSettings: false,
+  toggleLockSection: false,
   printConsole: false,
 };
 
@@ -213,7 +214,8 @@ function buildMenuTemplate() {
           enabled: currentMenuState.toggleSettings,
         },
         {
-          label: "Toggle Lock-State Edit Section",
+          label: "Edit Lock Preferences",
+          enabled: currentMenuState.toggleLockSection,
           click: () => {
             mainWindow.send("menu-click", "toggleEditLockStatusSection");
           },
