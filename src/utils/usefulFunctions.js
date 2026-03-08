@@ -1,3 +1,4 @@
+import { FaderIndexes } from "../backend/constants.js";
 import { FontMapPT7 } from "./Alphabets.js";
 
 export function compareMaps(map1, map2) {
@@ -125,4 +126,8 @@ function deepEqual(a, b) {
   }
 
   return true;
+}
+
+export function isFader(note) {
+  return note.note_id <= FaderIndexes.end && note.note_id >= FaderIndexes.start;
 }

@@ -6,6 +6,7 @@ const {
   dialog,
   Menu,
   ipcRenderer,
+  webFrame,
 } = require("electron");
 const path = require("node:path");
 const started = require("electron-squirrel-startup");
@@ -39,7 +40,7 @@ const createWindow = () => {
       } else {
         callback(false);
       }
-    }
+    },
   );
 
   mainWindow = new BrowserWindow({
@@ -55,6 +56,7 @@ const createWindow = () => {
       // enableBlinkFeatures: "Midi",
     },
   });
+  let win = BrowserWindow.getFocusedWindow();
 
   // and load the index.html of the app.
   mainWindow.loadFile(path.join(__dirname, "index.html"));
@@ -227,6 +229,32 @@ function buildMenuTemplate() {
           click: () => {
             const isFullscreen = mainWindow.isFullScreen();
             mainWindow.setFullScreen(!isFullscreen);
+          },
+        },
+        {
+          label: "Zoom Out",
+          accelerator: "CmdOrCtrl+-",
+          click: () => {
+            const wc = mainWindow.webContents;
+            const currentZoom = wc.getZoomFactor();
+            const newZoom = Math.max(
+              0.25,
+              Math.round((currentZoom - 0.1) * 10) / 10,
+            );
+            wc.setZoomFactor(newZoom);
+          },
+        },
+        {
+          label: "Zoom In",
+          accelerator: "CmdOrCtrl+Plus",
+          click: () => {
+            const wc = mainWindow.webContents;
+            const currentZoom = wc.getZoomFactor();
+            const newZoom = Math.min(
+              5,
+              Math.round((currentZoom + 0.1) * 10) / 10,
+            );
+            wc.setZoomFactor(newZoom);
           },
         },
       ],

@@ -10,6 +10,7 @@ import {
   ArrayToSet,
   compareMaps,
   compareSets,
+  isFader,
   isWhiteTextReadable,
 } from "../utils/usefulFunctions.js";
 import {
@@ -46,15 +47,17 @@ class Interception {
 
   async intersept(onMessageConfirmationReceive) {
     onNoteOn(this.fromAPC, async (msg) => {
-      const { note, velocity } = getOldDataScheme(msg);
-      if (!this.deviceLocked) await this.toJoker.send(msg);
+      const { note, velocity, channel } = getOldDataScheme(msg);
+      if (!this.deviceLocked && !isFader({ note, channel }))
+        await this.toJoker.send(msg);
 
       if (velocity == 127) this.#setCurrentlyPressedNote(note);
       else if (velocity === 0) this.#deleteCurrentlyPressedNote(note);
 
       if (msg[0] !== 176) return;
-      if (note <= FaderIndexes.end && note >= FaderIndexes.start)
+      if (isFader({ note, channel })) {
         this.APCmini.setWebUIFader(note, velocity);
+      }
     });
 
     onNoteOn(this.fromJoker, (msg) => {
